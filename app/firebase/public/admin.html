@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ניהול - אתגר הסיום</title>
+<link rel="icon" href="/assets/emblem.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Assistant:wght@400;600;700;800&display=swap">
+<style>
+:root{--ink:#16100b;--ink-2:#201710;--ink-3:#2c2017;--gold:#c9a24a;--gold-hi:#ecd391;--cream:#efe4cf;--dim:#bfb19a;--faint:#8e806b;--line:rgba(236,211,145,.16);--ok:#7fb57a;--warn:#e0a54a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--cream);font-family:"Assistant",Arial,sans-serif;font-size:16px}
+.wrap{max-width:1180px;margin:auto;padding:24px 16px 60px}
+header{display:flex;align-items:center;gap:16px;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px;flex-wrap:wrap}
+header img{height:44px}
+h1,h2{font-family:"Frank Ruhl Libre",serif;margin:0}
+h2{font-size:24px;margin-bottom:12px;color:var(--gold-hi)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi b{display:block;font-family:"Frank Ruhl Libre",serif;font-size:32px;color:var(--gold-hi);font-variant-numeric:tabular-nums}
+.kpi span{color:var(--dim);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:start}
+th{color:var(--faint);font-weight:600;font-size:13px}
+.bar{height:8px;background:var(--gold);border-radius:4px}
+button,.btn{font:inherit;font-weight:700;border-radius:999px;padding:9px 18px;border:1px solid rgba(236,211,145,.38);background:transparent;color:var(--cream);cursor:pointer}
+.btn-gold{background:linear-gradient(110deg,#8d6c2c,#ecd391 45%,#c9a24a);color:#20160d;border:0}
+input{font:inherit;color:var(--cream);background:var(--ink);border:1px solid rgba(236,211,145,.38);border-radius:10px;padding:9px 12px;width:100%}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+code{direction:ltr;display:block;background:var(--ink);padding:8px 10px;border-radius:8px;overflow:auto;font-size:13px;color:var(--dim)}
+.muted{color:var(--faint);font-size:14px}
+.scroll{overflow-x:auto}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><img src="/assets/logo-horizontal-compact.svg" alt="אתגר הסיום"><h1 style="font-size:26px">לוח ניהול</h1><div class="row"><span id="who" class="muted"></span><button id="signin">התחברות עם Google</button><button id="signout" hidden>התנתקות</button></div></header>
+  <p id="msg" class="muted">יש להתחבר עם חשבון שהוגדר כמנהל.</p>
+  <main id="app" hidden>
+    <section class="kpis" id="kpis"></section>
+    <section class="grid">
+      <div class="card"><h2>לפי מסלול</h2><table id="t-track"></table></div>
+      <div class="card"><h2>לפי תחום</h2><table id="t-subject"></table></div>
+      <div class="card"><h2>לפי קהילה (שדה רשות)</h2><table id="t-sector"></table></div>
+    </section>
+    <section class="grid">
+      <div class="card"><h2>בתי כנסת וארגונים מובילים</h2><div class="scroll"><table id="t-comm"></table></div></div>
+      <div class="card"><h2>קישור הצטרפות לקהילה</h2>
+        <p class="muted">קישור שממלא מראש את שם בית הכנסת או הארגון, כדי שכל ההתחייבויות שלו ייספרו יחד. מתאים לשליחה לרבנים, מוסדות ומקומות עבודה.</p>
+        <div class="row"><input id="commName" placeholder="לדוגמה: בית הכנסת אוהל משה"></div>
+        <p></p><code id="commLink">-</code><p></p><button id="copyComm">העתקה</button></div>
+    </section>
+    <section class="card">
+      <h2>ייצוא נתונים</h2>
+      <p class="muted">קובצי CSV נפתחים באקסל. הקבצים כוללים מידע אישי: יש לשמור אותם בהתאם לנוהלי אבטחת המידע של מרכז לאו ולא להעביר לגורמים שאינם מורשים.</p>
+      <div class="row"><button class="btn-gold" id="expUsers">ייצוא משתתפים</button><button id="expCommit">ייצוא התחייבויות</button><span id="expStatus" class="muted"></span></div>
+    </section>
+  </main>
+</div>
+<script src="/config.js"></script>
+<script type="module" src="/admin.js"></script>
+</body>
+</html>

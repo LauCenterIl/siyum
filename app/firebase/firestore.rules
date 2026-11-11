@@ -1,0 +1,97 @@
+rules_version = '2';
+// אתגר הסיום - Firestore security rules
+// - Each participant reads and writes only their own profile and commitments.
+// - Counters (stats, communities) are public to read and written only by Cloud Functions.
+// - Fields the server manages (referral code, invite count, reminder schedule) can't be set by the browser.
+// - Admins are listed as documents in /admins/{email} (added by hand in the Firebase console).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    // Writing requires a verified email (Google accounts are verified; email/password users click the link first)
+    function isVerifiedOwner(uid) { return isOwner(uid) && request.auth.token.email_verified == true; }
+    function isAdmin() {
+      return signedIn() && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    }
+    function serverFields() {
+      return ['code', 'invitesCount', 'refCredited', 'nextAt', 'lastSentAt', 'sentCount',
+              'unsubToken', 'unsubscribed', 'commitCount', 'createdAt', 'lastError'];
+    }
+    function validStr(v, max) { return v is string && v.size() <= max; }
+    function validRem(r) {
+      return r is map && r.keys().hasOnly(['ch', 'fr', 'tm'])
+        && r.ch in ['wa', 'sms', 'mail'] && r.fr in ['daily', '2w', 'weekly']
+        && r.tm in ['morning', 'noon', 'evening'];
+    }
+    function validProfile(p) {
+      return p is map
+        && p.keys().hasOnly(['age', 'gender', 'sector', 'city', 'community', 'communityKey', 'phone'])
+        && validStr(p.get('city', ''), 60) && validStr(p.get('community', ''), 80)
+        && validStr(p.get('communityKey', ''), 120) && validStr(p.get('phone', ''), 30)
+        && p.get('sector', '') in ['', 'secular', 'traditional', 'dati', 'haredi', 'other'];
+    }
+    function validUser(d) {
+      return d.keys().hasOnly(['name', 'email', 'lang', 'profile', 'rem', 'reminderActive', 'consent',
+                               'ref', 'updatedAt'].concat(serverFields()))
+        && validStr(d.get('name', ''), 80)
+        && (!('profile' in d) || validProfile(d.profile))
+        && (!('rem' in d) || validRem(d.rem))
+        && (!('ref' in d) || d.ref == null || validStr(d.ref, 12));
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isVerifiedOwner(uid) && validUser(request.resource.data)
+        && !request.resource.data.keys().hasAny(serverFields());
+      allow update: if isVerifiedOwner(uid) && validUser(request.resource.data)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(serverFields())
+        // the referral code of whoever invited you can be set once and never changed
+        && (!('ref' in resource.data) || resource.data.ref == null
+            || request.resource.data.get('ref', null) == resource.data.ref);
+      allow delete: if false;
+
+      match /commitments/{cid} {
+        function validCommitment(c) {
+          return c.keys().hasOnly(['track', 'subject', 'optIdx', 'n', 'u', 'customText', 'customUnit',
+                                   'ded', 'label', 'unitLabel', 'start', 'done', 'createdAt', 'updatedAt'])
+            && c.track in ['seed', 'growth', 'peak']
+            && c.subject in ['tanach', 'mussar', 'machshava', 'halacha', 'rambam', 'gemara', 'custom']
+            && c.n is number && c.n >= 1 && c.n <= 10000
+            && validStr(c.u, 20) && validStr(c.get('customText', ''), 140)
+            && validStr(c.get('customUnit', ''), 30) && validStr(c.get('ded', ''), 120);
+        }
+        allow read: if isOwner(uid) || isAdmin();
+        allow create: if isVerifiedOwner(uid) && validCommitment(request.resource.data)
+          && request.resource.data.done == 0;
+        allow update: if isVerifiedOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done', 'updatedAt'])
+          && request.resource.data.done is number
+          && request.resource.data.done >= 0 && request.resource.data.done <= resource.data.n;
+        allow delete: if false;
+      }
+    }
+
+    // Admin dashboard reads all commitments at once
+    match /{path=**}/commitments/{cid} {
+      allow read: if isAdmin();
+    }
+
+    match /stats/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /communities/{key} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /codes/{code} {
+      allow read, write: if false;
+    }
+    match /admins/{email} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}
