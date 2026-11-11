@@ -18,6 +18,18 @@ for S in RESEND_API_KEY WA_TOKEN TWILIO_SID TWILIO_TOKEN; do
   fi
 done
 
+echo "==> granting the roles Google's background services need"
+NUM=$(gcloud projects describe $PROJECT --format='value(projectNumber)')
+bind() { gcloud projects add-iam-policy-binding $PROJECT --member="$1" --role="$2" --condition=None -q >/dev/null && echo "    ok $2"; }
+bind serviceAccount:service-$NUM@gcp-sa-pubsub.iam.gserviceaccount.com roles/iam.serviceAccountTokenCreator
+bind serviceAccount:$NUM-compute@developer.gserviceaccount.com roles/run.invoker
+bind serviceAccount:$NUM-compute@developer.gserviceaccount.com roles/eventarc.eventReceiver
+bind serviceAccount:$NUM-compute@developer.gserviceaccount.com roles/secretmanager.secretAccessor
+bind serviceAccount:$NUM-compute@developer.gserviceaccount.com roles/datastore.user
+bind serviceAccount:$NUM-compute@developer.gserviceaccount.com roles/cloudbuild.builds.builder
+bind serviceAccount:$NUM-compute@developer.gserviceaccount.com roles/logging.logWriter
+bind serviceAccount:$NUM-compute@developer.gserviceaccount.com roles/artifactregistry.writer
+
 echo "==> installing function dependencies"
 cd "$DIR/firebase/functions" && npm install --no-audit --no-fund --silent && cd ..
 
