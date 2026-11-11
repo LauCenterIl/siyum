@@ -53,7 +53,8 @@ if s == 404:
 
 cfg = json.load(open(os.path.join(ROOT, "firebase.json")))["hosting"]
 vconf = {"cleanUrls": True, "headers": [{"glob": h["source"], "headers": {x["key"]: x["value"] for x in h["headers"]}} for h in cfg.get("headers", [])]}
-rewrites = [{"glob": rw["source"], "function": rw["function"]["functionId"], "functionRegion": rw["function"].get("region", "us-central1")}
+# 2nd-gen functions run on Cloud Run: the service id is the lowercase function name
+rewrites = [{"glob": rw["source"], "run": {"serviceId": rw["function"]["functionId"].lower(), "region": rw["function"].get("region", "us-central1")}}
             for rw in cfg.get("rewrites", []) if "function" in rw]
 if rewrites: vconf["rewrites"] = rewrites
 s, ver = call("POST", f"https://firebasehosting.googleapis.com/v1beta1/sites/{SITE}/versions", {"config": vconf})
