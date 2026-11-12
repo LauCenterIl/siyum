@@ -210,3 +210,67 @@ window.SUBJECTS = [
   growth:[{he:"25 דפי גמרא",en:"25 dapim",n:25,u:"daf"},{he:"50 דפי גמרא",en:"50 dapim",n:50,u:"daf"},{he:"מסכת קצרה",en:"A short masechta",n:100,u:"pct"}],
   peak:[{he:"מסכת שלמה",en:"A full masechta",n:100,u:"pct"},{he:"סדר מועד",en:"Seder Moed",n:12,u:"masechet"},{he:"100 דפים עם חזרה",en:"100 dapim with review",n:100,u:"daf"}]}}
 ];
+
+/* ================= LEARNING PAGES (catalog, subject pages, reader) ================= */
+Object.assign(window.T.he, {
+ navLearn:"אפשרויות הלימוד", navLearnShort:"מה לומדים",
+ subjP:"לחצו על תחום כדי לראות את כל האפשרויות בו - ואפילו להתחיל ללמוד כבר עכשיו. ולמי שרוצה משהו אחר - אפשר להגדיר התחייבות אישית משלכם.",
+ subjAll:"לפירוט המלא של כל האפשרויות",
+ learnEye:"אפשרויות הלימוד", learnH:"54 אפשרויות|בשישה תחומים|בשלוש רמות",
+ learnP:"בכל תחום יש תשע אפשרויות: שלוש בכל רמה. בוחרים לפי היכולת האישית ולפי הזמן שיש לכם עד שבועות - ואפשר תמיד להגדיל או להקטין.",
+ levelsH:"שלוש רמות", levelsP:"הרמה נקבעת לפי היקף ההתחייבות - לא לפי רמת הידע או רמת הדת שלכם.",
+ subjectsH:"התחומים", fullH:"הפירוט המלא", fullP:"כל 54 האפשרויות: התחום, הרמה, הכמות והקצב המשוער עד שבועות.",
+ colLevel:"רמה", colOpt:"אפשרות", colAmt:"כמות", colPace:"קצב משוער",
+ nOptions:"9 אפשרויות · 3 רמות", toSubject:"לכל האפשרויות בתחום", allSubjects:"כל אפשרויות הלימוד",
+ aboutSubj:"על התחום", takeIt:"אני לוקח/ת את זה", readNow:"ללמוד עכשיו", libAll:"לכל ספריית התחום בספריא",
+ pctTrack:"מעקב באחוזים", amtProgram:"תוכנית שלמה", paceDay:"כ-{r} {u} ביום", paceWeek:"כ-{r} {u} בשבוע", paceMonth:"כ-{r} {u} בחודש", paceOnce:"פעם אחת בכל שבוע", paceEasy:"קצב נינוח - יש זמן עד שבועות",
+ otherSubjects:"תחומים נוספים", customCardP:"לא מצאתם? הגדירו לימוד משלכם: פרשת השבוע, משניות, חברותא, לימוד משפחתי ועוד.", customGo:"להגדרת התחייבות אישית",
+ backTo:"חזרה ל{x}", readerLoading:"טוען את הטקסט…", readerErr:"לא הצלחנו לטעון את הטקסט כרגע. אפשר לפתוח אותו ישירות בספריא.",
+ readerPrev:"הקודם", readerNext:"הבא", openSefaria:"פתיחה בספריא",
+ readerSrc:"הטקסט מוצג מתוך ספריא (Sefaria) - ספרייה יהודית חינמית ופתוחה.", readerCta:"רוצים להפוך את זה להתחייבות?", readerCtaBtn:"לבחירת יעד ב{x}"
+});
+Object.assign(window.T.en, {
+ navLearn:"Learning options", navLearnShort:"Learn",
+ subjP:"Tap a subject to see every option in it - and even start learning right now. And for anyone who wants something else - set a personal commitment of your own.",
+ subjAll:"See the full list of options",
+ learnEye:"Learning options", learnH:"54 options|in six subjects|at three levels",
+ learnP:"Each subject has nine options: three at every level. Choose by your personal ability and the time you have until Shavuos - you can always scale up or down.",
+ levelsH:"Three levels", levelsP:"The level reflects the size of the commitment - not your knowledge or religious level.",
+ subjectsH:"Subjects", fullH:"The full list", fullP:"All 54 options: subject, level, amount and estimated pace until Shavuos.",
+ colLevel:"Level", colOpt:"Option", colAmt:"Amount", colPace:"Est. pace",
+ nOptions:"9 options · 3 levels", toSubject:"All options in this subject", allSubjects:"All learning options",
+ aboutSubj:"About", takeIt:"I'll take this on", readNow:"Learn now", libAll:"Full library on Sefaria",
+ pctTrack:"Tracked in percent", amtProgram:"A full program", paceDay:"about {r} {u} a day", paceWeek:"about {r} {u} a week", paceMonth:"about {r} {u} a month", paceOnce:"once every week", paceEasy:"an easy pace - plenty of time until Shavuos",
+ otherSubjects:"More subjects", customCardP:"Didn't find it? Define your own learning: Parashas HaShavua, Mishnayos, chavrusa, family learning and more.", customGo:"Set a personal commitment",
+ backTo:"Back to {x}", readerLoading:"Loading the text…", readerErr:"We couldn't load the text right now. You can open it directly on Sefaria.",
+ readerPrev:"Previous", readerNext:"Next", openSefaria:"Open on Sefaria",
+ readerSrc:"Text shown from Sefaria - a free, open Jewish library. Hebrew original.", readerCta:"Want to make this a commitment?", readerCtaBtn:"Choose a goal in {x}"
+});
+
+/* About each subject, its Sefaria library section, and where each option starts reading (Sefaria refs). */
+window.SUBJ_INFO = {
+ tanach:{lib:"texts/Tanakh",
+  he:"ספרי התנ״ך - תורה, נביאים וכתובים - הם הבסיס של כל לימוד יהודי. אפשר להתחיל בספר קצר כמו מגילת רות או ספר יונה, להתמיד בפרקי תהילים, ועד לסיום חמשת חומשי התורה.",
+  en:"The books of Tanach - Torah, Nevi'im and Kesuvim - are the foundation of all Jewish learning. Start with a short book like Rus or Yonah, keep up with Tehillim, or complete all five books of the Torah.",
+  src:{seed:["Ruth.1","Jonah.1","Psalms.1"],growth:["Joshua.1","I_Samuel.1","Psalms.1"],peak:["Genesis.1","Joshua.1","Psalms.1"]}},
+ mussar:{lib:"texts/Musar",
+  he:"ספרי המוסר עוסקים בתיקון המידות, ביחסים שבין אדם לחברו ובעבודת ה׳ של כל יום. פרקי אבות, מסילת ישרים וארחות צדיקים מלווים את עם ישראל כבר מאות שנים.",
+  en:"Mussar works on character, on how we treat one another and on everyday service of Hashem. Pirkei Avos, Mesillas Yesharim and Orchos Tzaddikim have guided the Jewish people for centuries.",
+  src:{seed:["Pirkei_Avot.1","Orchot_Tzadikim,_Introduction","Mesillat_Yesharim.1"],growth:["Pirkei_Avot.1","Orchot_Tzadikim.1","Mesillat_Yesharim.1"],peak:["Mesillat_Yesharim,_Introduction","Orchot_Tzadikim,_Introduction","Mesillat_Yesharim.1"]}},
+ machshava:{lib:"texts/Jewish%20Thought",
+  he:"מחשבת ישראל עוסקת בשאלות הגדולות: אמונה, זהות יהודית ומשמעות. ספר הכוזרי לרבי יהודה הלוי וחובות הלבבות לרבנו בחיי הם מעמודי התווך של התחום.",
+  en:"Jewish thought takes on the big questions: faith, Jewish identity and meaning. Rabbi Yehuda HaLevi's Kuzari and Rabbeinu Bachya's Chovos HaLevavos are its pillars.",
+  src:{seed:["Kuzari.1","Duties_of_the_Heart,_Fourth_Treatise_on_Trust.1","Kuzari.1"],growth:["Kuzari.1","Kuzari.1","Duties_of_the_Heart,_First_Treatise_on_Unity.1"],peak:["Kuzari.1","Duties_of_the_Heart,_First_Treatise_on_Unity.1","Kuzari.1"]}},
+ halacha:{lib:"texts/Halakhah",
+  he:"הלכה למעשה: איך שומרים שבת, איך מברכים ואיך מתנהגים כיהודי בכל יום. לימוד קצר וקבוע בהלכה מחבר בין הלימוד לבין החיים עצמם.",
+  en:"Practical halacha: how to keep Shabbos, how to make brachos and how to live as a Jew every day. A short, steady halacha study connects learning with life itself.",
+  src:{seed:["Kitzur_Shulchan_Arukh.1","Peninei_Halakhah,_Shabbat.1","Peninei_Halakhah,_Berakhot.1"],growth:["Kitzur_Shulchan_Arukh.1","Peninei_Halakhah,_Shabbat.1","Peninei_Halakhah,_Berakhot.1"],peak:["Kitzur_Shulchan_Arukh.1","Shulchan_Arukh,_Orach_Chayim.242","Shulchan_Arukh,_Orach_Chayim.202"]}},
+ rambam:{lib:"texts/Halakhah/Mishneh%20Torah",
+  he:"משנה תורה לרמב״ם מקיף את כל ההלכה כולה בלשון ברורה ומסודרת. אפשר להתחיל בהלכות תשובה או בהלכות דעות, ועד לסיום ספר שלם.",
+  en:"The Rambam's Mishneh Torah covers all of halacha in clear, ordered language. Start with Hilchos Teshuvah or Hilchos De'os, or complete an entire sefer.",
+  src:{seed:["Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Repentance.1","Mishneh_Torah,_Human_Dispositions.1"],growth:["Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Human_Dispositions.1","Mishneh_Torah,_Foundations_of_the_Torah.1"],peak:["Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Foundations_of_the_Torah.1"]}},
+ gemara:{lib:"texts/Talmud/Bavli",
+  he:"התלמוד הבבלי הוא לב הלימוד התורני - הוא הש״ס שהעולם היהודי מסיים בשבועות תשפ״ז. כל דף שאתם לומדים מצטרף לסיום הגדול.",
+  en:"The Babylonian Talmud is the heart of Torah study - the Shas the Jewish world completes on Shavuos 5787. Every daf you learn joins the great Siyum.",
+  src:{seed:["Berakhot.2a","Berakhot.2a","Berakhot.2a"],growth:["Berakhot.2a","Berakhot.2a","Megillah.2a"],peak:["Berakhot.2a","Shabbat.2a","Berakhot.2a"]}}
+};

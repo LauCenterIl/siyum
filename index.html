@@ -66,7 +66,8 @@ button{font:inherit;cursor:pointer}
 .nav a:hover{color:var(--gold-hi)}
 .nav a.on{color:var(--gold-hi)}
 .lang{border:1px solid var(--line-strong);background:transparent;color:var(--cream);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px}
-@media (max-width:760px){.nav .hide-sm{display:none}.brand-logo{height:36px}}
+.nav a{white-space:nowrap}.nav .show-sm{display:none}
+@media (max-width:760px){.nav .hide-sm{display:none}.nav .show-sm{display:inline}.nav a{padding:8px 6px}.brand-logo{height:36px}}
 
 /* ---------- buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border-radius:999px;padding:14px 26px;font-weight:800;font-size:17px;border:0;text-decoration:none;transition:transform .15s ease,box-shadow .2s ease}
@@ -212,6 +213,77 @@ footer a{color:var(--cream-dim)}
 .choice .amt{font-family:var(--f-display);color:var(--gold-hi);font-size:18px}
 .choice.custom{border-style:dashed;grid-column:1/-1}
 
+/* ---------- learning catalog, subject pages, reader ---------- */
+.learn{padding-block:30px 90px}
+.crumb{margin-bottom:8px;font-size:15px}
+.learn-hero{display:grid;gap:12px;justify-items:start;padding-block:10px 26px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.learn-hero h1{font-family:var(--f-display);font-size:clamp(34px,5.4vw,58px);line-height:1.08}
+.learn-hero h1 .ln{display:block}
+.learn-hero h1 .ln:nth-child(2){color:var(--gold-hi)}
+.learn-hero h1 .ln:nth-child(3){color:var(--cream-dim)}
+.learn-hero p{color:var(--cream-dim);font-size:19px;max-width:62ch}
+.learn-sec{padding-block:30px;border-bottom:1px solid var(--line)}
+.learn-sec:last-child{border-bottom:0}
+.learn-sec>h2{font-family:var(--f-display);font-size:clamp(26px,3.4vw,36px);margin-bottom:6px}
+.learn-sub{color:var(--cream-dim);margin-bottom:20px;max-width:62ch}
+.lvl-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.lvl-card{border:1px solid var(--line);border-radius:var(--r);background:var(--ink-2);padding:20px}
+.lvl-card ul{margin:12px 0 0;padding-inline-start:20px;color:var(--cream-dim);font-size:15.5px;display:grid;gap:4px}
+.lvl-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.lvl-head .k{font-size:12px;letter-spacing:.14em;color:var(--gold);font-weight:800}
+.lvl-head h3{font-family:var(--f-display);font-size:26px;line-height:1.1}
+.lvl-head p{color:var(--cream-dim);font-size:15px}
+.lvl-card .lvl-head{margin-bottom:0}
+.subj-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.subj-card{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:8px;align-content:start;padding:22px;border-radius:var(--r);border:1.5px solid var(--line);background:var(--ink-2);text-align:start;transition:border-color .15s,transform .15s}
+.subj-card:hover{border-color:var(--gold-lo);transform:translateY(-2px)}
+.subj-card:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+.subj-card .k{font-size:13px;color:var(--gold);font-weight:800}
+.subj-card h3{font-family:var(--f-display);font-size:28px;line-height:1.1}
+.subj-card p{color:var(--cream-dim);font-size:15px}
+.subj-card .meta{color:var(--cream-faint);font-size:14px}
+.subj-card .go{color:var(--gold-hi);font-weight:700;font-size:15px}
+.subj-card.custom{border-style:dashed}
+.ltable-wrap{margin-bottom:26px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--ink-2)}
+.ltable-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
+.ltable-head h3{font-family:var(--f-display);font-size:24px}
+.ltable-head h3 span{font-family:var(--f-body);font-size:15px;color:var(--cream-faint);font-weight:400;margin-inline-start:6px}
+.ltable{width:100%;border-collapse:collapse;font-size:15.5px}
+.ltable th{text-align:start;color:var(--cream-faint);font-weight:700;font-size:13px;padding:10px 18px;background:var(--ink-3)}
+.ltable td{padding:10px 18px;border-top:1px solid var(--line);color:var(--cream-dim);vertical-align:top}
+.ltable tr.first td{border-top-color:var(--line-strong)}
+.ltable td.lv{color:var(--gold);font-weight:800;white-space:nowrap}
+.link{background:none;border:0;padding:0;color:var(--cream);font:inherit;font-weight:700;text-align:start;cursor:pointer}
+.link:hover{color:var(--gold-hi);text-decoration:underline}
+@media (max-width:760px){
+  .lvl-cards,.subj-cards{grid-template-columns:1fr}
+  .ltable thead{display:none}
+  .ltable,.ltable tbody,.ltable tr,.ltable td{display:block;width:100%}
+  .ltable tr{padding:10px 16px;border-top:1px solid var(--line)}
+  .ltable td{border:0;padding:2px 0}
+  .ltable td.lv:empty{display:none}
+}
+.opt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:860px){.opt-grid{grid-template-columns:1fr}}
+.opt-card{display:grid;gap:10px;align-content:start;padding:20px;border-radius:var(--r);border:1px solid var(--line);background:var(--ink-2)}
+.opt-card .k{font-size:12px;color:var(--gold);font-weight:800}
+.opt-card h3{font-family:var(--f-display);font-size:23px;line-height:1.2}
+.opt-facts{display:grid;gap:2px;color:var(--cream-dim);font-size:14.5px}
+.opt-facts b{color:var(--cream);font-weight:700}
+.opt-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.reader{max-width:820px;margin-inline:auto;margin-top:10px;border-radius:18px;background:var(--parch);color:var(--parch-ink);padding:clamp(20px,4vw,44px)}
+.reader-load{color:var(--parch-mute);margin-bottom:14px}
+.reader-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;border-bottom:1px solid rgba(42,29,19,.15);padding-bottom:16px;margin-bottom:18px}
+.reader .eyebrow{color:var(--gold-lo)}
+.reader h1{font-family:var(--f-display);font-size:clamp(28px,4vw,40px);line-height:1.15}
+.reader .btn-ghost{color:var(--parch-ink);border-color:rgba(42,29,19,.35)}
+.reader .btn-ghost:hover{color:var(--gold-lo);border-color:var(--gold-lo)}
+.reader-text{list-style-type:hebrew;font-family:var(--f-display);font-size:clamp(20px,2.4vw,23px);line-height:1.85;margin:0;padding-inline-start:1.6em;display:grid;gap:12px}
+.reader-text li::marker{color:var(--gold-lo);font-family:var(--f-body);font-size:.7em;font-weight:700}
+.reader-nav{display:flex;justify-content:space-between;gap:12px;margin-top:26px}
+.reader-src{margin-top:20px;font-size:13px;color:var(--parch-mute)}
+.reader-cta{max-width:820px;margin:18px auto 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+
 .panel{border:1px solid var(--line);border-radius:18px;background:var(--ink-2);padding:24px}
 .form{display:grid;gap:18px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
@@ -341,6 +413,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-hi)
       <a href="#home" class="hide-sm" data-go="home" data-anchor="how" data-t="navHow"></a>
       <a href="#home" class="hide-sm" data-go="home" data-anchor="tracks" data-t="navTracks"></a>
       <a href="#home" class="hide-sm" data-go="home" data-anchor="road" data-t="navRoad"></a>
+      <a href="#learn" data-route="learn"><span class="hide-sm" data-t="navLearn"></span><span class="show-sm" data-t="navLearnShort"></span></a>
       <a href="#me" data-go="me" data-t="navMe"></a>
       <button class="lang" id="langBtn" type="button">EN</button>
     </nav>
@@ -426,6 +499,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-hi)
     <div class="wrap">
       <div class="band-head"><div class="eyebrow" data-t="subjEye"></div><h2 data-t="subjH"></h2><p data-t="subjP"></p></div>
       <div class="subjects" id="subjChips"></div>
+      <div style="margin-top:22px"><button class="btn btn-ghost" data-route="learn" data-t="subjAll"></button></div>
     </div>
   </section>
 
@@ -455,6 +529,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-hi)
 
 <!-- ================= JOIN ================= -->
 <div class="view" id="v-join"><div class="wrap wiz"><div class="wiz-shell" id="wiz"></div></div></div>
+
+<!-- ================= LEARNING OPTIONS ================= -->
+<div class="view" id="v-learn"><div class="wrap learn" id="learn"></div></div>
+<div class="view" id="v-read"><div class="wrap learn" id="reader"></div></div>
 
 <!-- ================= ME ================= -->
 <div class="view" id="v-me"><div class="wrap wiz"><div id="me"></div></div></div>
@@ -684,6 +762,70 @@ window.SUBJECTS = [
   peak:[{he:"מסכת שלמה",en:"A full masechta",n:100,u:"pct"},{he:"סדר מועד",en:"Seder Moed",n:12,u:"masechet"},{he:"100 דפים עם חזרה",en:"100 dapim with review",n:100,u:"daf"}]}}
 ];
 
+/* ================= LEARNING PAGES (catalog, subject pages, reader) ================= */
+Object.assign(window.T.he, {
+ navLearn:"אפשרויות הלימוד", navLearnShort:"מה לומדים",
+ subjP:"לחצו על תחום כדי לראות את כל האפשרויות בו - ואפילו להתחיל ללמוד כבר עכשיו. ולמי שרוצה משהו אחר - אפשר להגדיר התחייבות אישית משלכם.",
+ subjAll:"לפירוט המלא של כל האפשרויות",
+ learnEye:"אפשרויות הלימוד", learnH:"54 אפשרויות|בשישה תחומים|בשלוש רמות",
+ learnP:"בכל תחום יש תשע אפשרויות: שלוש בכל רמה. בוחרים לפי היכולת האישית ולפי הזמן שיש לכם עד שבועות - ואפשר תמיד להגדיל או להקטין.",
+ levelsH:"שלוש רמות", levelsP:"הרמה נקבעת לפי היקף ההתחייבות - לא לפי רמת הידע או רמת הדת שלכם.",
+ subjectsH:"התחומים", fullH:"הפירוט המלא", fullP:"כל 54 האפשרויות: התחום, הרמה, הכמות והקצב המשוער עד שבועות.",
+ colLevel:"רמה", colOpt:"אפשרות", colAmt:"כמות", colPace:"קצב משוער",
+ nOptions:"9 אפשרויות · 3 רמות", toSubject:"לכל האפשרויות בתחום", allSubjects:"כל אפשרויות הלימוד",
+ aboutSubj:"על התחום", takeIt:"אני לוקח/ת את זה", readNow:"ללמוד עכשיו", libAll:"לכל ספריית התחום בספריא",
+ pctTrack:"מעקב באחוזים", amtProgram:"תוכנית שלמה", paceDay:"כ-{r} {u} ביום", paceWeek:"כ-{r} {u} בשבוע", paceMonth:"כ-{r} {u} בחודש", paceOnce:"פעם אחת בכל שבוע", paceEasy:"קצב נינוח - יש זמן עד שבועות",
+ otherSubjects:"תחומים נוספים", customCardP:"לא מצאתם? הגדירו לימוד משלכם: פרשת השבוע, משניות, חברותא, לימוד משפחתי ועוד.", customGo:"להגדרת התחייבות אישית",
+ backTo:"חזרה ל{x}", readerLoading:"טוען את הטקסט…", readerErr:"לא הצלחנו לטעון את הטקסט כרגע. אפשר לפתוח אותו ישירות בספריא.",
+ readerPrev:"הקודם", readerNext:"הבא", openSefaria:"פתיחה בספריא",
+ readerSrc:"הטקסט מוצג מתוך ספריא (Sefaria) - ספרייה יהודית חינמית ופתוחה.", readerCta:"רוצים להפוך את זה להתחייבות?", readerCtaBtn:"לבחירת יעד ב{x}"
+});
+Object.assign(window.T.en, {
+ navLearn:"Learning options", navLearnShort:"Learn",
+ subjP:"Tap a subject to see every option in it - and even start learning right now. And for anyone who wants something else - set a personal commitment of your own.",
+ subjAll:"See the full list of options",
+ learnEye:"Learning options", learnH:"54 options|in six subjects|at three levels",
+ learnP:"Each subject has nine options: three at every level. Choose by your personal ability and the time you have until Shavuos - you can always scale up or down.",
+ levelsH:"Three levels", levelsP:"The level reflects the size of the commitment - not your knowledge or religious level.",
+ subjectsH:"Subjects", fullH:"The full list", fullP:"All 54 options: subject, level, amount and estimated pace until Shavuos.",
+ colLevel:"Level", colOpt:"Option", colAmt:"Amount", colPace:"Est. pace",
+ nOptions:"9 options · 3 levels", toSubject:"All options in this subject", allSubjects:"All learning options",
+ aboutSubj:"About", takeIt:"I'll take this on", readNow:"Learn now", libAll:"Full library on Sefaria",
+ pctTrack:"Tracked in percent", amtProgram:"A full program", paceDay:"about {r} {u} a day", paceWeek:"about {r} {u} a week", paceMonth:"about {r} {u} a month", paceOnce:"once every week", paceEasy:"an easy pace - plenty of time until Shavuos",
+ otherSubjects:"More subjects", customCardP:"Didn't find it? Define your own learning: Parashas HaShavua, Mishnayos, chavrusa, family learning and more.", customGo:"Set a personal commitment",
+ backTo:"Back to {x}", readerLoading:"Loading the text…", readerErr:"We couldn't load the text right now. You can open it directly on Sefaria.",
+ readerPrev:"Previous", readerNext:"Next", openSefaria:"Open on Sefaria",
+ readerSrc:"Text shown from Sefaria - a free, open Jewish library. Hebrew original.", readerCta:"Want to make this a commitment?", readerCtaBtn:"Choose a goal in {x}"
+});
+
+/* About each subject, its Sefaria library section, and where each option starts reading (Sefaria refs). */
+window.SUBJ_INFO = {
+ tanach:{lib:"texts/Tanakh",
+  he:"ספרי התנ״ך - תורה, נביאים וכתובים - הם הבסיס של כל לימוד יהודי. אפשר להתחיל בספר קצר כמו מגילת רות או ספר יונה, להתמיד בפרקי תהילים, ועד לסיום חמשת חומשי התורה.",
+  en:"The books of Tanach - Torah, Nevi'im and Kesuvim - are the foundation of all Jewish learning. Start with a short book like Rus or Yonah, keep up with Tehillim, or complete all five books of the Torah.",
+  src:{seed:["Ruth.1","Jonah.1","Psalms.1"],growth:["Joshua.1","I_Samuel.1","Psalms.1"],peak:["Genesis.1","Joshua.1","Psalms.1"]}},
+ mussar:{lib:"texts/Musar",
+  he:"ספרי המוסר עוסקים בתיקון המידות, ביחסים שבין אדם לחברו ובעבודת ה׳ של כל יום. פרקי אבות, מסילת ישרים וארחות צדיקים מלווים את עם ישראל כבר מאות שנים.",
+  en:"Mussar works on character, on how we treat one another and on everyday service of Hashem. Pirkei Avos, Mesillas Yesharim and Orchos Tzaddikim have guided the Jewish people for centuries.",
+  src:{seed:["Pirkei_Avot.1","Orchot_Tzadikim,_Introduction","Mesillat_Yesharim.1"],growth:["Pirkei_Avot.1","Orchot_Tzadikim.1","Mesillat_Yesharim.1"],peak:["Mesillat_Yesharim,_Introduction","Orchot_Tzadikim,_Introduction","Mesillat_Yesharim.1"]}},
+ machshava:{lib:"texts/Jewish%20Thought",
+  he:"מחשבת ישראל עוסקת בשאלות הגדולות: אמונה, זהות יהודית ומשמעות. ספר הכוזרי לרבי יהודה הלוי וחובות הלבבות לרבנו בחיי הם מעמודי התווך של התחום.",
+  en:"Jewish thought takes on the big questions: faith, Jewish identity and meaning. Rabbi Yehuda HaLevi's Kuzari and Rabbeinu Bachya's Chovos HaLevavos are its pillars.",
+  src:{seed:["Kuzari.1","Duties_of_the_Heart,_Fourth_Treatise_on_Trust.1","Kuzari.1"],growth:["Kuzari.1","Kuzari.1","Duties_of_the_Heart,_First_Treatise_on_Unity.1"],peak:["Kuzari.1","Duties_of_the_Heart,_First_Treatise_on_Unity.1","Kuzari.1"]}},
+ halacha:{lib:"texts/Halakhah",
+  he:"הלכה למעשה: איך שומרים שבת, איך מברכים ואיך מתנהגים כיהודי בכל יום. לימוד קצר וקבוע בהלכה מחבר בין הלימוד לבין החיים עצמם.",
+  en:"Practical halacha: how to keep Shabbos, how to make brachos and how to live as a Jew every day. A short, steady halacha study connects learning with life itself.",
+  src:{seed:["Kitzur_Shulchan_Arukh.1","Peninei_Halakhah,_Shabbat.1","Peninei_Halakhah,_Berakhot.1"],growth:["Kitzur_Shulchan_Arukh.1","Peninei_Halakhah,_Shabbat.1","Peninei_Halakhah,_Berakhot.1"],peak:["Kitzur_Shulchan_Arukh.1","Shulchan_Arukh,_Orach_Chayim.242","Shulchan_Arukh,_Orach_Chayim.202"]}},
+ rambam:{lib:"texts/Halakhah/Mishneh%20Torah",
+  he:"משנה תורה לרמב״ם מקיף את כל ההלכה כולה בלשון ברורה ומסודרת. אפשר להתחיל בהלכות תשובה או בהלכות דעות, ועד לסיום ספר שלם.",
+  en:"The Rambam's Mishneh Torah covers all of halacha in clear, ordered language. Start with Hilchos Teshuvah or Hilchos De'os, or complete an entire sefer.",
+  src:{seed:["Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Repentance.1","Mishneh_Torah,_Human_Dispositions.1"],growth:["Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Human_Dispositions.1","Mishneh_Torah,_Foundations_of_the_Torah.1"],peak:["Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Foundations_of_the_Torah.1","Mishneh_Torah,_Foundations_of_the_Torah.1"]}},
+ gemara:{lib:"texts/Talmud/Bavli",
+  he:"התלמוד הבבלי הוא לב הלימוד התורני - הוא הש״ס שהעולם היהודי מסיים בשבועות תשפ״ז. כל דף שאתם לומדים מצטרף לסיום הגדול.",
+  en:"The Babylonian Talmud is the heart of Torah study - the Shas the Jewish world completes on Shavuos 5787. Every daf you learn joins the great Siyum.",
+  src:{seed:["Berakhot.2a","Berakhot.2a","Berakhot.2a"],growth:["Berakhot.2a","Berakhot.2a","Megillah.2a"],peak:["Berakhot.2a","Shabbat.2a","Berakhot.2a"]}}
+};
+
 </script>
 <script>
 /* Demo store: keeps everything in this browser only. Used for the preview artifact. */
@@ -751,6 +893,7 @@ const LIVE = () => window.Store && window.Store.mode === "live";
 /* ---------- state ---------- */
 let lang = "he";
 let view = "home";
+let learnSubj = null, readSubj = null, readRef = null;
 const S = {auth:null, me:null, commitments:[], stats:null, ready:false, community:null};
 let W = freshWizard();
 function freshWizard(){ return {step:0, track:null, subject:null, optIdx:null, n:null, customText:"", customUnit:"", name:"", details:{age:"",gender:"",sector:"",city:"",community:"",phone:"",ded:""}, rem:{ch:"wa",fr:"daily",tm:"evening"}, consent:false, t:Date.now()}; }
@@ -804,7 +947,7 @@ function applyLang(){
   $("#langBtn").textContent = lang==="he"?"EN":"עב";
   renderTrackCards(); renderSubjChips(); renderRoad(); renderCountdown(); renderStats();
   const ref = LS.get("atgar_ref"); if(ref){ const b=$("#refBanner"); b.hidden=false; b.textContent=t("refBanner"); }
-  if(view==="join") renderWizard(); if(view==="me") renderMe();
+  if(view==="join") renderWizard(); if(view==="me") renderMe(); if(view==="learn") renderLearn(); if(view==="read") renderRead();
 }
 
 /* ---------- home ---------- */
@@ -817,7 +960,7 @@ function renderTrackCards(){
     <ul>${t("trackEx")[k].map(x=>`<li>${esc(x)}</li>`).join("")}</ul><span class="go">${esc(t("pickTrack"))}</span></button>`).join("");
 }
 function renderSubjChips(){
-  $("#subjChips").innerHTML = SUBJECTS.map(s=>`<button type="button" class="subj-chip" data-start-subj="${s.id}">${esc(s[lang])}<span>${esc(lang==="he"?s.dh:s.de)}</span></button>`).join("") + `<button type="button" class="subj-chip" style="border-style:dashed" data-start-subj="custom">${esc(t("customSubj"))}</button>`;
+  $("#subjChips").innerHTML = SUBJECTS.map(s=>`<button type="button" class="subj-chip" data-route="learn/${s.id}">${esc(s[lang])}<span>${esc(lang==="he"?s.dh:s.de)}</span></button>`).join("") + `<button type="button" class="subj-chip" style="border-style:dashed" data-start-subj="custom">${esc(t("customSubj"))}</button>`;
 }
 function renderRoad(){
   const names = lang==="he"?{chanukah:"חנוכה",purim:"פורים",pesach:"פסח",shavuot:"שבועות"}:{chanukah:"Chanukah",purim:"Purim",pesach:"Pesach",shavuot:"Shavuos"};
@@ -835,17 +978,72 @@ function renderStats(){
   if(n && n>0){ box.hidden=false; $("#liveNum").textContent = nf(n); } else box.hidden = true;
 }
 
-/* ---------- routing ---------- */
-function go(v, anchor){
-  view=v; document.querySelectorAll(".view").forEach(x=>x.classList.remove("on")); $("#v-"+v).classList.add("on");
-  document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("on", a.dataset.go===v && v==="me"));
-  if(v==="join") renderWizard(); if(v==="me") renderMe();
-  try{ const h = v==="home" ? "" : "#"+v; if(location.hash!==h) history.replaceState(null,"",location.pathname+location.search.replace(/[?&]finishSignIn=1/,"")+h); }catch(e){}
-  if(anchor){ const a=document.getElementById(anchor); if(a) setTimeout(()=>a.scrollIntoView({behavior:"smooth"}),30); } else window.scrollTo(0,0);
+/* ---------- routing ----------
+   Every screen has its own address (#learn, #learn/gemara, #join/goal ...) and is pushed to the browser
+   history, so the browser Back button walks back through the site instead of leaving it. */
+let navIdx = 0; const navStack = [];
+function curHash(){ try{ return decodeURIComponent((location.hash||"").slice(1)); }catch(e){ return (location.hash||"").slice(1); } }
+function routeHash(){
+  if(view==="join") return W.step>0 ? "join/"+STEPS[W.step] : "join";
+  if(view==="learn") return learnSubj ? "learn/"+learnSubj : "learn";
+  if(view==="read") return "read/"+(readSubj||"x")+"/"+readRef;
+  return view==="home" ? "" : view;
 }
+function syncUrl(replace){
+  const h = routeHash();
+  if(!replace && curHash()===h) return;
+  const url = location.pathname + location.search.replace(/[?&]finishSignIn=1/,"") + (h ? "#"+encodeURI(h) : "");
+  try{
+    if(replace){ history.replaceState({i:navIdx},"",url); navStack[navIdx]=h; }
+    else { navIdx++; navStack.length=navIdx; navStack.push(h); history.pushState({i:navIdx},"",url); }
+  }catch(e){}
+}
+/* go back to `h` the way the browser would, if that is the previous page; otherwise open it as a new step */
+function backTo(h, open){ if(navIdx>0 && navStack[navIdx-1]===h) history.back(); else open(); }
+function showView(v){
+  view=v; document.querySelectorAll(".view").forEach(x=>x.classList.remove("on")); $("#v-"+v).classList.add("on");
+  document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("on", (a.dataset.go===v && v==="me") || (a.dataset.route==="learn" && (v==="learn"||v==="read"))));
+}
+function go(v, anchor, opts){
+  opts = opts || {};
+  showView(v);
+  if(v==="join"){ W._replace = !!opts.replace; renderWizard(); }
+  else { if(v==="me") renderMe(); if(v==="learn") renderLearn(); if(v==="read") renderRead(); syncUrl(!!opts.replace); }
+  if(anchor){ const a=document.getElementById(anchor); if(a) setTimeout(()=>a.scrollIntoView({behavior:"smooth"}),30); } else if(!opts.keepScroll) window.scrollTo(0,0);
+}
+/* open an address: "", "learn", "learn/tanach", "read/tanach/Ruth.1", "join/goal", "me" */
+function navigate(h, opts){
+  opts = opts || {};
+  const parts = (h||"").split("/"), a = parts[0];
+  if(a==="learn"){ learnSubj = subjById(parts[1]) ? parts[1] : null; return go("learn", null, opts); }
+  if(a==="read" && parts.length>2){ readSubj = parts[1]; readRef = parts.slice(2).join("/"); return go("read", null, opts); }
+  if(a==="me") return go("me", null, opts);
+  if(a==="join"){
+    const doneI = STEPS.length-1;
+    let i = parts[1] ? STEPS.indexOf(parts[1]) : 0; if(i<0) i=0;
+    if(W.step===doneI && i<doneI){ W=freshWizard(); LS.del("atgar_draft"); return go("home", null, {replace:true}); }
+    if(view==="join") captureDetails();
+    const c = clampStep(i); W.step = c;
+    return go("join", null, {replace: opts.replace || c!==i});
+  }
+  return go("home", null, opts);
+}
+function clampStep(i){
+  const verified = !!(S.auth && S.auth.verified);
+  if(i>=1 && !W.track) return 0;
+  if(i>=2 && !verified) return 1;
+  if(i>=3 && !W.subject) return 2;
+  if(i>=4 && (W.subject==="custom" ? !W.customText : W.optIdx==null)) return 3;
+  if(i===STEPS.length-1 && W.step!==i) return 4;
+  return i;
+}
+window.addEventListener("popstate", e=>{ navIdx = (e.state && e.state.i) || 0; navigate(curHash(), {replace:true}); });
 document.addEventListener("click", e=>{
+  const r=e.target.closest("[data-route]");
+  if(r){ e.preventDefault(); navigate(r.dataset.route); return; }
   const g=e.target.closest("[data-go]"); if(!g) return; e.preventDefault();
   if(g.dataset.go==="join" && view!=="join"){ W=freshWizard(); prefillCommunity(); }
+  if(g.dataset.go==="home" && view==="home" && g.dataset.anchor){ const a=document.getElementById(g.dataset.anchor); if(a) a.scrollIntoView({behavior:"smooth"}); return; }
   go(g.dataset.go, g.dataset.anchor);
 });
 $("#langBtn").addEventListener("click",()=>{ lang = lang==="he"?"en":"he"; LS.set("atgar_lang",lang); applyLang(); });
@@ -853,7 +1051,7 @@ $("#langBtn").addEventListener("click",()=>{ lang = lang==="he"?"en":"he"; LS.se
 /* ---------- wizard ---------- */
 const STEPS = ["track","signin","subject","goal","details","done"];
 function stepperHTML(){ const total=STEPS.length-1; let h='<div class="stepper">'; for(let i=0;i<total;i++){ h+=`<i class="${i<W.step?"done":i===W.step?"cur":""}"></i>`; } return h+"</div>"; }
-function metaHTML(){ return `<div class="wiz-meta">${W.step>0?`<button class="back" data-act="back">${lang==="he"?"→":"←"} ${esc(t("back"))}</button>`:"<span></span>"}<span>${esc(t("stepOf",{a:W.step+1,b:STEPS.length-1}))}</span></div>`; }
+function metaHTML(){ return `<div class="wiz-meta"><button class="back" data-act="back">${lang==="he"?"→":"←"} ${esc(t("back"))}</button><span>${esc(t("stepOf",{a:W.step+1,b:STEPS.length-1}))}</span></div>`; }
 const G_ICON = `<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.8c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7.8-6C1 16.5 0 20.1 0 24s1 7.5 2.7 10.8l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.7l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>`;
 
 function signInBlock(){
@@ -965,6 +1163,7 @@ function renderWizard(){
   bindWizard();
   if(s==="goal") renderPace();
   saveDraft();
+  if(view==="join"){ syncUrl(!!W._replace); W._replace=false; }
 }
 function remControls(r, phone, prefix){
   const p = prefix||"d";
@@ -1015,7 +1214,14 @@ function captureDetails(){
 }
 function setErr(m){ const e=$("#err"); if(e) e.textContent=m; return false; }
 async function act(a, btn){
-  if(a==="back"){ captureDetails(); W.step = Math.max(0, W.step-1); renderWizard(); return; }
+  if(a==="back"){
+    captureDetails();
+    let p = W.step-1; if(STEPS[p]==="signin" && S.auth && S.auth.verified) p--;
+    if(p<0){ if(navIdx>0) history.back(); else go("home"); return; }
+    const h = "join"+(p>0?"/"+STEPS[p]:"");
+    backTo(h, ()=>{ W.step=p; renderWizard(); window.scrollTo(0,0); });
+    return;
+  }
   const em = () => (($("#a-email")||{}).value||"").trim();
   const pw = () => (($("#a-pass")||{}).value||"");
   const keep = () => { const n=$("#a-name"); if(n) W._aname=n.value.trim(); W._aemail=em(); };
@@ -1172,6 +1378,122 @@ function renderMe(){
    </aside></div>`;
 }
 
+/* ---------- learning catalog, subject pages and reader ---------- */
+const INFO = window.SUBJ_INFO || {};
+function arrow(){ return lang==="he" ? "←" : "→"; }
+function backArrow(){ return lang==="he" ? "→" : "←"; }
+function paceText(o){
+  if(o.u==="pct") return t("pctTrack");
+  const d=Math.max(1,daysLeft()), perDay=o.n/d;
+  if(o.u==="week") return t("paceOnce");
+  if(perDay>=1) return t("paceDay",{r:nf(Math.round(perDay*10)/10), u:unitLabel(o.u)});
+  const perWeek=o.n/(d/7); if(perWeek>=1) return t("paceWeek",{r:nf(Math.round(perWeek*10)/10), u:unitLabel(o.u)});
+  const perMonth=o.n/(d/30.4); if(perMonth>=1) return t("paceMonth",{r:nf(Math.round(perMonth*10)/10), u:unitLabel(o.u)});
+  return t("paceEasy");
+}
+function amtText(o){ return o.u==="pct" ? t("amtProgram") : nf(o.n)+" "+unitLabel(o.u); }
+function srcOf(subj, track, i){ const x=INFO[subj]; return x && x.src && x.src[track] && x.src[track][i]; }
+function sefariaUrl(ref){
+  const r = String(ref).replace(/ (\d+[ab]?(?::\d+)*)$/, ".$1").replace(/:/g,".").replace(/ /g,"_");
+  return "https://www.sefaria.org.il/"+encodeURI(r)+"?lang=he";
+}
+function levelHead(k){ return `<div class="lvl-head"><svg width="34" height="34" style="color:var(--gold)"><use href="#${GLYPH[k]}"/></svg><div><span class="k">${trackKey(k)}</span><h3>${esc(t("trackName")[k])}</h3><p>${esc(t("trackPromise")[k])}</p></div></div>`; }
+
+function renderLearn(){
+  const box=$("#learn"); if(!box) return;
+  if(learnSubj){ box.innerHTML = subjectPageHTML(subjById(learnSubj)); return; }
+  let h = `<div class="learn-hero"><div class="eyebrow">${esc(t("learnEye"))}</div><h1>${lines(t("learnH"))}</h1><p>${esc(t("learnP"))}</p></div>`;
+  h += `<section class="learn-sec"><h2>${esc(t("levelsH"))}</h2><p class="learn-sub">${esc(t("levelsP"))}</p><div class="lvl-cards">${TRACKS.map(k=>`<div class="lvl-card">${levelHead(k)}<ul>${t("trackEx")[k].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div></section>`;
+  h += `<section class="learn-sec"><h2>${esc(t("subjectsH"))}</h2><div class="subj-cards">${SUBJECTS.map(sb=>`
+    <button type="button" class="subj-card" data-route="learn/${sb.id}"><span class="k">${esc(lang==="he"?sb.dh:sb.de)}</span><h3>${esc(sb[lang])}</h3><p>${esc((INFO[sb.id]||{})[lang]||"")}</p><span class="meta">${esc(t("nOptions"))}</span><span class="go">${esc(t("toSubject"))} ${arrow()}</span></button>`).join("")}
+    <button type="button" class="subj-card custom" data-start-subj="custom"><span class="k">+</span><h3>${esc(t("customSubj"))}</h3><p>${esc(t("customCardP"))}</p><span class="go">${esc(t("customGo"))} ${arrow()}</span></button></div></section>`;
+  h += `<section class="learn-sec"><h2>${esc(t("fullH"))}</h2><p class="learn-sub">${esc(t("fullP"))}</p>`;
+  SUBJECTS.forEach(sb=>{
+    h += `<div class="ltable-wrap"><div class="ltable-head"><h3>${esc(sb[lang])} <span>${esc(lang==="he"?sb.dh:sb.de)}</span></h3><button type="button" class="back" data-route="learn/${sb.id}">${esc(t("toSubject"))} ${arrow()}</button></div>
+      <table class="ltable"><thead><tr><th>${esc(t("colLevel"))}</th><th>${esc(t("colOpt"))}</th><th>${esc(t("colAmt"))}</th><th>${esc(t("colPace"))}</th></tr></thead><tbody>`;
+    TRACKS.forEach(k=>sb.opts[k].forEach((o,i)=>{ h += `<tr class="${i===0?"first":""}"><td class="lv">${i===0?esc(t("trackName")[k]):""}</td><td><button type="button" class="link" data-route="learn/${sb.id}">${esc(o[lang])}</button></td><td>${esc(amtText(o))}</td><td>${esc(paceText(o))}</td></tr>`; }));
+    h += `</tbody></table></div>`;
+  });
+  h += `</section>`;
+  box.innerHTML = h;
+}
+function subjectPageHTML(sb){
+  const info = INFO[sb.id]||{};
+  let h = `<button type="button" class="back crumb" data-act-learn="toall">${backArrow()} ${esc(t("allSubjects"))}</button>
+  <div class="learn-hero"><div class="eyebrow">${esc(lang==="he"?sb.dh:sb.de)}</div><h1>${esc(sb[lang])}</h1><p>${esc(info[lang]||"")}</p>
+  ${info.lib?`<a class="btn btn-ghost btn-sm" href="https://www.sefaria.org.il/${info.lib}?lang=he" target="_blank" rel="noopener">${esc(t("libAll"))} ↗</a>`:""}</div>`;
+  TRACKS.forEach(k=>{
+    h += `<section class="learn-sec">${levelHead(k)}<div class="opt-grid">`+ sb.opts[k].map((o,i)=>{
+      const ref = srcOf(sb.id,k,i);
+      return `<div class="opt-card"><span class="k">${esc(sb[lang])} · ${esc(t("trackName")[k])}</span><h3>${esc(o[lang])}</h3>
+        <div class="opt-facts"><span><b>${esc(t("colAmt"))}:</b> ${esc(amtText(o))}</span><span><b>${esc(t("colPace"))}:</b> ${esc(paceText(o))}</span></div>
+        <div class="opt-actions"><button type="button" class="btn btn-gold btn-sm" data-take="${sb.id}|${k}|${i}">${esc(t("takeIt"))}</button>${ref?`<button type="button" class="btn btn-ghost btn-sm" data-route="read/${sb.id}/${esc(ref)}">${esc(t("readNow"))} 📖</button>`:""}</div></div>`;
+    }).join("") + `</div></section>`;
+  });
+  h += `<section class="learn-sec"><h2 style="font-size:24px">${esc(t("otherSubjects"))}</h2><div class="subjects">${SUBJECTS.filter(x=>x.id!==sb.id).map(x=>`<button type="button" class="subj-chip" data-route="learn/${x.id}">${esc(x[lang])}<span>${esc(lang==="he"?x.dh:x.de)}</span></button>`).join("")}<button type="button" class="subj-chip" style="border-style:dashed" data-start-subj="custom">${esc(t("customSubj"))}</button></div></section>`;
+  return h;
+}
+
+/* reader: shows the actual text inside the site, from Sefaria's free public API */
+const readCache = {};
+function cleanHTML(html){
+  const tpl=document.createElement("template"); tpl.innerHTML=String(html);
+  const keep={B:1,STRONG:1,I:1,EM:1,BR:1,SMALL:1,BIG:1};
+  const walk=n=>{ let out=""; n.childNodes.forEach(c=>{
+    if(c.nodeType===3) out+=esc(c.textContent);
+    else if(c.nodeType===1){
+      if(c.tagName==="SUP" || (c.classList && (c.classList.contains("footnote")||c.classList.contains("footnote-marker")))) return;
+      const inner=walk(c);
+      if(keep[c.tagName]){ const tg=c.tagName.toLowerCase(); out+= tg==="br" ? "<br>" : `<${tg}>${inner}</${tg}>`; } else out+=inner;
+    } }); return out; };
+  return walk(tpl.content);
+}
+function flat(x){ return Array.isArray(x) ? x.flatMap(flat) : [x]; }
+function readerHead(sb){
+  return `<button type="button" class="back crumb" data-act-learn="tosubj">${backArrow()} ${esc(t("backTo",{x: sb ? sb[lang] : t("allSubjects")}))}</button>`;
+}
+async function renderRead(){
+  const box=$("#reader"); if(!box) return;
+  const sb = subjById(readSubj), ref = readRef;
+  box.innerHTML = readerHead(sb) + `<div class="reader"><p class="reader-load">${esc(t("readerLoading"))}</p></div>`;
+  let d = readCache[ref];
+  if(!d){
+    try{
+      const r = await fetch("https://www.sefaria.org/api/v3/texts/"+encodeURIComponent(ref.replace(/_/g," "))+"?version=hebrew&return_format=text_only");
+      d = await r.json(); if(!d || !d.versions || !d.versions.length) throw new Error("no text");
+      readCache[ref]=d;
+    }catch(e){
+      if(view!=="read" || readRef!==ref) return;
+      box.innerHTML = readerHead(sb) + `<div class="reader"><p class="reader-load">${esc(t("readerErr"))}</p><a class="btn btn-gold btn-sm" href="${esc(sefariaUrl(ref))}" target="_blank" rel="noopener">${esc(t("openSefaria"))} ↗</a></div>`;
+      return;
+    }
+  }
+  if(view!=="read" || readRef!==ref) return;
+  const v = d.versions[0];
+  const paras = flat(v.text).filter(x=>typeof x==="string" && x.trim());
+  const nav = (dir)=>{ const target = d[dir]; return target ? `<button type="button" class="btn btn-ghost btn-sm" data-read-to="${esc(target)}">${dir==="prev"?backArrow()+" "+esc(t("readerPrev")):esc(t("readerNext"))+" "+arrow()}</button>` : "<span></span>"; };
+  box.innerHTML = readerHead(sb) + `<article class="reader" lang="he" dir="rtl">
+    <div class="reader-top"><div><div class="eyebrow">${esc(sb ? sb.he : "")}</div><h1>${esc(d.heRef || d.ref)}</h1></div><a class="btn btn-ghost btn-sm" href="${esc(sefariaUrl(d.ref||ref))}" target="_blank" rel="noopener">${esc(t("openSefaria"))} ↗</a></div>
+    <ol class="reader-text">${paras.map(p=>`<li>${cleanHTML(p)}</li>`).join("")}</ol>
+    <div class="reader-nav">${nav("prev")}${nav("next")}</div>
+    <p class="reader-src">${esc(t("readerSrc"))}${v.versionTitle?` · ${esc(v.versionTitle)}`:""}</p>
+  </article>
+  ${sb?`<div class="panel reader-cta"><b>${esc(t("readerCta"))}</b><button type="button" class="btn btn-gold btn-sm" data-act-learn="tosubj">${esc(t("readerCtaBtn",{x:sb[lang]}))} ${arrow()}</button></div>`:""}`;
+}
+document.addEventListener("click", e=>{
+  const tk=e.target.closest("[data-take]");
+  if(tk){ const [subj,track,i]=tk.dataset.take.split("|"); W=freshWizard(); prefillCommunity();
+    W.subject=subj; W.track=track; W.optIdx=+i; W.n=subjById(subj).opts[track][+i].n;
+    W.step = (S.auth&&S.auth.verified) ? 3 : 1; go("join"); return; }
+  const rt=e.target.closest("[data-read-to]");
+  if(rt){ readRef = rt.dataset.readTo.replace(/ /g,"_"); go("read", null, {replace:true}); return; }
+  const al=e.target.closest("[data-act-learn]");
+  if(al){
+    if(al.dataset.actLearn==="toall") backTo("learn", ()=>navigate("learn"));
+    else { const h = subjById(readSubj) ? "learn/"+readSubj : "learn"; backTo(h, ()=>navigate(h)); }
+  }
+});
+
 /* ---------- global clicks ---------- */
 function afterSignin(){ return W.subject ? 3 : 2; }
 document.addEventListener("click", e=>{
@@ -1246,11 +1568,13 @@ function boot(){
   window.Store.watchStats(st=>{ S.stats=st; renderStats(); });
   window.Store.init(async user=>{
     S.auth=user; await refreshMine(); S.ready=true;
-    if(view==="join"){ if(user && user.verified && W._fromMe){ W=freshWizard(); LS.del("atgar_draft"); go("me"); return; } if(user && user.verified && STEPS[W.step]==="signin"){ W.step = afterSignin(); } renderWizard(); }
+    if(view==="join"){ if(user && user.verified && W._fromMe){ W=freshWizard(); LS.del("atgar_draft"); go("me"); return; } if(user && user.verified && STEPS[W.step]==="signin"){ W.step = afterSignin(); W._replace = true; } renderWizard(); }
     if(view==="me") renderMe();
   });
-  const h=(location.hash||"").slice(1);
-  if(h==="join") go("join"); else if(h==="me") go("me");
+  const h=curHash();
+  navStack[0]=""; try{ history.replaceState({i:0},"",location.href); }catch(e){}
+  if(h && !/^ref-/i.test(h) && h!=="home") navigate(h, {replace:true});
+  else if(h) { try{ history.replaceState({i:0},"",location.pathname+location.search); }catch(e){} }
 }
 if(window.Store) boot(); else window.addEventListener("store-ready", boot, {once:true});
 })();

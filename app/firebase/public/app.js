@@ -17,6 +17,7 @@ const LIVE = () => window.Store && window.Store.mode === "live";
 /* ---------- state ---------- */
 let lang = "he";
 let view = "home";
+let learnSubj = null, readSubj = null, readRef = null;
 const S = {auth:null, me:null, commitments:[], stats:null, ready:false, community:null};
 let W = freshWizard();
 function freshWizard(){ return {step:0, track:null, subject:null, optIdx:null, n:null, customText:"", customUnit:"", name:"", details:{age:"",gender:"",sector:"",city:"",community:"",phone:"",ded:""}, rem:{ch:"wa",fr:"daily",tm:"evening"}, consent:false, t:Date.now()}; }
@@ -70,7 +71,7 @@ function applyLang(){
   $("#langBtn").textContent = lang==="he"?"EN":"עב";
   renderTrackCards(); renderSubjChips(); renderRoad(); renderCountdown(); renderStats();
   const ref = LS.get("atgar_ref"); if(ref){ const b=$("#refBanner"); b.hidden=false; b.textContent=t("refBanner"); }
-  if(view==="join") renderWizard(); if(view==="me") renderMe();
+  if(view==="join") renderWizard(); if(view==="me") renderMe(); if(view==="learn") renderLearn(); if(view==="read") renderRead();
 }
 
 /* ---------- home ---------- */
@@ -83,7 +84,7 @@ function renderTrackCards(){
     <ul>${t("trackEx")[k].map(x=>`<li>${esc(x)}</li>`).join("")}</ul><span class="go">${esc(t("pickTrack"))}</span></button>`).join("");
 }
 function renderSubjChips(){
-  $("#subjChips").innerHTML = SUBJECTS.map(s=>`<button type="button" class="subj-chip" data-start-subj="${s.id}">${esc(s[lang])}<span>${esc(lang==="he"?s.dh:s.de)}</span></button>`).join("") + `<button type="button" class="subj-chip" style="border-style:dashed" data-start-subj="custom">${esc(t("customSubj"))}</button>`;
+  $("#subjChips").innerHTML = SUBJECTS.map(s=>`<button type="button" class="subj-chip" data-route="learn/${s.id}">${esc(s[lang])}<span>${esc(lang==="he"?s.dh:s.de)}</span></button>`).join("") + `<button type="button" class="subj-chip" style="border-style:dashed" data-start-subj="custom">${esc(t("customSubj"))}</button>`;
 }
 function renderRoad(){
   const names = lang==="he"?{chanukah:"חנוכה",purim:"פורים",pesach:"פסח",shavuot:"שבועות"}:{chanukah:"Chanukah",purim:"Purim",pesach:"Pesach",shavuot:"Shavuos"};
@@ -101,17 +102,72 @@ function renderStats(){
   if(n && n>0){ box.hidden=false; $("#liveNum").textContent = nf(n); } else box.hidden = true;
 }
 
-/* ---------- routing ---------- */
-function go(v, anchor){
-  view=v; document.querySelectorAll(".view").forEach(x=>x.classList.remove("on")); $("#v-"+v).classList.add("on");
-  document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("on", a.dataset.go===v && v==="me"));
-  if(v==="join") renderWizard(); if(v==="me") renderMe();
-  try{ const h = v==="home" ? "" : "#"+v; if(location.hash!==h) history.replaceState(null,"",location.pathname+location.search.replace(/[?&]finishSignIn=1/,"")+h); }catch(e){}
-  if(anchor){ const a=document.getElementById(anchor); if(a) setTimeout(()=>a.scrollIntoView({behavior:"smooth"}),30); } else window.scrollTo(0,0);
+/* ---------- routing ----------
+   Every screen has its own address (#learn, #learn/gemara, #join/goal ...) and is pushed to the browser
+   history, so the browser Back button walks back through the site instead of leaving it. */
+let navIdx = 0; const navStack = [];
+function curHash(){ try{ return decodeURIComponent((location.hash||"").slice(1)); }catch(e){ return (location.hash||"").slice(1); } }
+function routeHash(){
+  if(view==="join") return W.step>0 ? "join/"+STEPS[W.step] : "join";
+  if(view==="learn") return learnSubj ? "learn/"+learnSubj : "learn";
+  if(view==="read") return "read/"+(readSubj||"x")+"/"+readRef;
+  return view==="home" ? "" : view;
 }
+function syncUrl(replace){
+  const h = routeHash();
+  if(!replace && curHash()===h) return;
+  const url = location.pathname + location.search.replace(/[?&]finishSignIn=1/,"") + (h ? "#"+encodeURI(h) : "");
+  try{
+    if(replace){ history.replaceState({i:navIdx},"",url); navStack[navIdx]=h; }
+    else { navIdx++; navStack.length=navIdx; navStack.push(h); history.pushState({i:navIdx},"",url); }
+  }catch(e){}
+}
+/* go back to `h` the way the browser would, if that is the previous page; otherwise open it as a new step */
+function backTo(h, open){ if(navIdx>0 && navStack[navIdx-1]===h) history.back(); else open(); }
+function showView(v){
+  view=v; document.querySelectorAll(".view").forEach(x=>x.classList.remove("on")); $("#v-"+v).classList.add("on");
+  document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("on", (a.dataset.go===v && v==="me") || (a.dataset.route==="learn" && (v==="learn"||v==="read"))));
+}
+function go(v, anchor, opts){
+  opts = opts || {};
+  showView(v);
+  if(v==="join"){ W._replace = !!opts.replace; renderWizard(); }
+  else { if(v==="me") renderMe(); if(v==="learn") renderLearn(); if(v==="read") renderRead(); syncUrl(!!opts.replace); }
+  if(anchor){ const a=document.getElementById(anchor); if(a) setTimeout(()=>a.scrollIntoView({behavior:"smooth"}),30); } else if(!opts.keepScroll) window.scrollTo(0,0);
+}
+/* open an address: "", "learn", "learn/tanach", "read/tanach/Ruth.1", "join/goal", "me" */
+function navigate(h, opts){
+  opts = opts || {};
+  const parts = (h||"").split("/"), a = parts[0];
+  if(a==="learn"){ learnSubj = subjById(parts[1]) ? parts[1] : null; return go("learn", null, opts); }
+  if(a==="read" && parts.length>2){ readSubj = parts[1]; readRef = parts.slice(2).join("/"); return go("read", null, opts); }
+  if(a==="me") return go("me", null, opts);
+  if(a==="join"){
+    const doneI = STEPS.length-1;
+    let i = parts[1] ? STEPS.indexOf(parts[1]) : 0; if(i<0) i=0;
+    if(W.step===doneI && i<doneI){ W=freshWizard(); LS.del("atgar_draft"); return go("home", null, {replace:true}); }
+    if(view==="join") captureDetails();
+    const c = clampStep(i); W.step = c;
+    return go("join", null, {replace: opts.replace || c!==i});
+  }
+  return go("home", null, opts);
+}
+function clampStep(i){
+  const verified = !!(S.auth && S.auth.verified);
+  if(i>=1 && !W.track) return 0;
+  if(i>=2 && !verified) return 1;
+  if(i>=3 && !W.subject) return 2;
+  if(i>=4 && (W.subject==="custom" ? !W.customText : W.optIdx==null)) return 3;
+  if(i===STEPS.length-1 && W.step!==i) return 4;
+  return i;
+}
+window.addEventListener("popstate", e=>{ navIdx = (e.state && e.state.i) || 0; navigate(curHash(), {replace:true}); });
 document.addEventListener("click", e=>{
+  const r=e.target.closest("[data-route]");
+  if(r){ e.preventDefault(); navigate(r.dataset.route); return; }
   const g=e.target.closest("[data-go]"); if(!g) return; e.preventDefault();
   if(g.dataset.go==="join" && view!=="join"){ W=freshWizard(); prefillCommunity(); }
+  if(g.dataset.go==="home" && view==="home" && g.dataset.anchor){ const a=document.getElementById(g.dataset.anchor); if(a) a.scrollIntoView({behavior:"smooth"}); return; }
   go(g.dataset.go, g.dataset.anchor);
 });
 $("#langBtn").addEventListener("click",()=>{ lang = lang==="he"?"en":"he"; LS.set("atgar_lang",lang); applyLang(); });
@@ -119,7 +175,7 @@ $("#langBtn").addEventListener("click",()=>{ lang = lang==="he"?"en":"he"; LS.se
 /* ---------- wizard ---------- */
 const STEPS = ["track","signin","subject","goal","details","done"];
 function stepperHTML(){ const total=STEPS.length-1; let h='<div class="stepper">'; for(let i=0;i<total;i++){ h+=`<i class="${i<W.step?"done":i===W.step?"cur":""}"></i>`; } return h+"</div>"; }
-function metaHTML(){ return `<div class="wiz-meta">${W.step>0?`<button class="back" data-act="back">${lang==="he"?"→":"←"} ${esc(t("back"))}</button>`:"<span></span>"}<span>${esc(t("stepOf",{a:W.step+1,b:STEPS.length-1}))}</span></div>`; }
+function metaHTML(){ return `<div class="wiz-meta"><button class="back" data-act="back">${lang==="he"?"→":"←"} ${esc(t("back"))}</button><span>${esc(t("stepOf",{a:W.step+1,b:STEPS.length-1}))}</span></div>`; }
 const G_ICON = `<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.8c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7.8-6C1 16.5 0 20.1 0 24s1 7.5 2.7 10.8l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.7l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>`;
 
 function signInBlock(){
@@ -231,6 +287,7 @@ function renderWizard(){
   bindWizard();
   if(s==="goal") renderPace();
   saveDraft();
+  if(view==="join"){ syncUrl(!!W._replace); W._replace=false; }
 }
 function remControls(r, phone, prefix){
   const p = prefix||"d";
@@ -281,7 +338,14 @@ function captureDetails(){
 }
 function setErr(m){ const e=$("#err"); if(e) e.textContent=m; return false; }
 async function act(a, btn){
-  if(a==="back"){ captureDetails(); W.step = Math.max(0, W.step-1); renderWizard(); return; }
+  if(a==="back"){
+    captureDetails();
+    let p = W.step-1; if(STEPS[p]==="signin" && S.auth && S.auth.verified) p--;
+    if(p<0){ if(navIdx>0) history.back(); else go("home"); return; }
+    const h = "join"+(p>0?"/"+STEPS[p]:"");
+    backTo(h, ()=>{ W.step=p; renderWizard(); window.scrollTo(0,0); });
+    return;
+  }
   const em = () => (($("#a-email")||{}).value||"").trim();
   const pw = () => (($("#a-pass")||{}).value||"");
   const keep = () => { const n=$("#a-name"); if(n) W._aname=n.value.trim(); W._aemail=em(); };
@@ -438,6 +502,122 @@ function renderMe(){
    </aside></div>`;
 }
 
+/* ---------- learning catalog, subject pages and reader ---------- */
+const INFO = window.SUBJ_INFO || {};
+function arrow(){ return lang==="he" ? "←" : "→"; }
+function backArrow(){ return lang==="he" ? "→" : "←"; }
+function paceText(o){
+  if(o.u==="pct") return t("pctTrack");
+  const d=Math.max(1,daysLeft()), perDay=o.n/d;
+  if(o.u==="week") return t("paceOnce");
+  if(perDay>=1) return t("paceDay",{r:nf(Math.round(perDay*10)/10), u:unitLabel(o.u)});
+  const perWeek=o.n/(d/7); if(perWeek>=1) return t("paceWeek",{r:nf(Math.round(perWeek*10)/10), u:unitLabel(o.u)});
+  const perMonth=o.n/(d/30.4); if(perMonth>=1) return t("paceMonth",{r:nf(Math.round(perMonth*10)/10), u:unitLabel(o.u)});
+  return t("paceEasy");
+}
+function amtText(o){ return o.u==="pct" ? t("amtProgram") : nf(o.n)+" "+unitLabel(o.u); }
+function srcOf(subj, track, i){ const x=INFO[subj]; return x && x.src && x.src[track] && x.src[track][i]; }
+function sefariaUrl(ref){
+  const r = String(ref).replace(/ (\d+[ab]?(?::\d+)*)$/, ".$1").replace(/:/g,".").replace(/ /g,"_");
+  return "https://www.sefaria.org.il/"+encodeURI(r)+"?lang=he";
+}
+function levelHead(k){ return `<div class="lvl-head"><svg width="34" height="34" style="color:var(--gold)"><use href="#${GLYPH[k]}"/></svg><div><span class="k">${trackKey(k)}</span><h3>${esc(t("trackName")[k])}</h3><p>${esc(t("trackPromise")[k])}</p></div></div>`; }
+
+function renderLearn(){
+  const box=$("#learn"); if(!box) return;
+  if(learnSubj){ box.innerHTML = subjectPageHTML(subjById(learnSubj)); return; }
+  let h = `<div class="learn-hero"><div class="eyebrow">${esc(t("learnEye"))}</div><h1>${lines(t("learnH"))}</h1><p>${esc(t("learnP"))}</p></div>`;
+  h += `<section class="learn-sec"><h2>${esc(t("levelsH"))}</h2><p class="learn-sub">${esc(t("levelsP"))}</p><div class="lvl-cards">${TRACKS.map(k=>`<div class="lvl-card">${levelHead(k)}<ul>${t("trackEx")[k].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div></section>`;
+  h += `<section class="learn-sec"><h2>${esc(t("subjectsH"))}</h2><div class="subj-cards">${SUBJECTS.map(sb=>`
+    <button type="button" class="subj-card" data-route="learn/${sb.id}"><span class="k">${esc(lang==="he"?sb.dh:sb.de)}</span><h3>${esc(sb[lang])}</h3><p>${esc((INFO[sb.id]||{})[lang]||"")}</p><span class="meta">${esc(t("nOptions"))}</span><span class="go">${esc(t("toSubject"))} ${arrow()}</span></button>`).join("")}
+    <button type="button" class="subj-card custom" data-start-subj="custom"><span class="k">+</span><h3>${esc(t("customSubj"))}</h3><p>${esc(t("customCardP"))}</p><span class="go">${esc(t("customGo"))} ${arrow()}</span></button></div></section>`;
+  h += `<section class="learn-sec"><h2>${esc(t("fullH"))}</h2><p class="learn-sub">${esc(t("fullP"))}</p>`;
+  SUBJECTS.forEach(sb=>{
+    h += `<div class="ltable-wrap"><div class="ltable-head"><h3>${esc(sb[lang])} <span>${esc(lang==="he"?sb.dh:sb.de)}</span></h3><button type="button" class="back" data-route="learn/${sb.id}">${esc(t("toSubject"))} ${arrow()}</button></div>
+      <table class="ltable"><thead><tr><th>${esc(t("colLevel"))}</th><th>${esc(t("colOpt"))}</th><th>${esc(t("colAmt"))}</th><th>${esc(t("colPace"))}</th></tr></thead><tbody>`;
+    TRACKS.forEach(k=>sb.opts[k].forEach((o,i)=>{ h += `<tr class="${i===0?"first":""}"><td class="lv">${i===0?esc(t("trackName")[k]):""}</td><td><button type="button" class="link" data-route="learn/${sb.id}">${esc(o[lang])}</button></td><td>${esc(amtText(o))}</td><td>${esc(paceText(o))}</td></tr>`; }));
+    h += `</tbody></table></div>`;
+  });
+  h += `</section>`;
+  box.innerHTML = h;
+}
+function subjectPageHTML(sb){
+  const info = INFO[sb.id]||{};
+  let h = `<button type="button" class="back crumb" data-act-learn="toall">${backArrow()} ${esc(t("allSubjects"))}</button>
+  <div class="learn-hero"><div class="eyebrow">${esc(lang==="he"?sb.dh:sb.de)}</div><h1>${esc(sb[lang])}</h1><p>${esc(info[lang]||"")}</p>
+  ${info.lib?`<a class="btn btn-ghost btn-sm" href="https://www.sefaria.org.il/${info.lib}?lang=he" target="_blank" rel="noopener">${esc(t("libAll"))} ↗</a>`:""}</div>`;
+  TRACKS.forEach(k=>{
+    h += `<section class="learn-sec">${levelHead(k)}<div class="opt-grid">`+ sb.opts[k].map((o,i)=>{
+      const ref = srcOf(sb.id,k,i);
+      return `<div class="opt-card"><span class="k">${esc(sb[lang])} · ${esc(t("trackName")[k])}</span><h3>${esc(o[lang])}</h3>
+        <div class="opt-facts"><span><b>${esc(t("colAmt"))}:</b> ${esc(amtText(o))}</span><span><b>${esc(t("colPace"))}:</b> ${esc(paceText(o))}</span></div>
+        <div class="opt-actions"><button type="button" class="btn btn-gold btn-sm" data-take="${sb.id}|${k}|${i}">${esc(t("takeIt"))}</button>${ref?`<button type="button" class="btn btn-ghost btn-sm" data-route="read/${sb.id}/${esc(ref)}">${esc(t("readNow"))} 📖</button>`:""}</div></div>`;
+    }).join("") + `</div></section>`;
+  });
+  h += `<section class="learn-sec"><h2 style="font-size:24px">${esc(t("otherSubjects"))}</h2><div class="subjects">${SUBJECTS.filter(x=>x.id!==sb.id).map(x=>`<button type="button" class="subj-chip" data-route="learn/${x.id}">${esc(x[lang])}<span>${esc(lang==="he"?x.dh:x.de)}</span></button>`).join("")}<button type="button" class="subj-chip" style="border-style:dashed" data-start-subj="custom">${esc(t("customSubj"))}</button></div></section>`;
+  return h;
+}
+
+/* reader: shows the actual text inside the site, from Sefaria's free public API */
+const readCache = {};
+function cleanHTML(html){
+  const tpl=document.createElement("template"); tpl.innerHTML=String(html);
+  const keep={B:1,STRONG:1,I:1,EM:1,BR:1,SMALL:1,BIG:1};
+  const walk=n=>{ let out=""; n.childNodes.forEach(c=>{
+    if(c.nodeType===3) out+=esc(c.textContent);
+    else if(c.nodeType===1){
+      if(c.tagName==="SUP" || (c.classList && (c.classList.contains("footnote")||c.classList.contains("footnote-marker")))) return;
+      const inner=walk(c);
+      if(keep[c.tagName]){ const tg=c.tagName.toLowerCase(); out+= tg==="br" ? "<br>" : `<${tg}>${inner}</${tg}>`; } else out+=inner;
+    } }); return out; };
+  return walk(tpl.content);
+}
+function flat(x){ return Array.isArray(x) ? x.flatMap(flat) : [x]; }
+function readerHead(sb){
+  return `<button type="button" class="back crumb" data-act-learn="tosubj">${backArrow()} ${esc(t("backTo",{x: sb ? sb[lang] : t("allSubjects")}))}</button>`;
+}
+async function renderRead(){
+  const box=$("#reader"); if(!box) return;
+  const sb = subjById(readSubj), ref = readRef;
+  box.innerHTML = readerHead(sb) + `<div class="reader"><p class="reader-load">${esc(t("readerLoading"))}</p></div>`;
+  let d = readCache[ref];
+  if(!d){
+    try{
+      const r = await fetch("https://www.sefaria.org/api/v3/texts/"+encodeURIComponent(ref.replace(/_/g," "))+"?version=hebrew&return_format=text_only");
+      d = await r.json(); if(!d || !d.versions || !d.versions.length) throw new Error("no text");
+      readCache[ref]=d;
+    }catch(e){
+      if(view!=="read" || readRef!==ref) return;
+      box.innerHTML = readerHead(sb) + `<div class="reader"><p class="reader-load">${esc(t("readerErr"))}</p><a class="btn btn-gold btn-sm" href="${esc(sefariaUrl(ref))}" target="_blank" rel="noopener">${esc(t("openSefaria"))} ↗</a></div>`;
+      return;
+    }
+  }
+  if(view!=="read" || readRef!==ref) return;
+  const v = d.versions[0];
+  const paras = flat(v.text).filter(x=>typeof x==="string" && x.trim());
+  const nav = (dir)=>{ const target = d[dir]; return target ? `<button type="button" class="btn btn-ghost btn-sm" data-read-to="${esc(target)}">${dir==="prev"?backArrow()+" "+esc(t("readerPrev")):esc(t("readerNext"))+" "+arrow()}</button>` : "<span></span>"; };
+  box.innerHTML = readerHead(sb) + `<article class="reader" lang="he" dir="rtl">
+    <div class="reader-top"><div><div class="eyebrow">${esc(sb ? sb.he : "")}</div><h1>${esc(d.heRef || d.ref)}</h1></div><a class="btn btn-ghost btn-sm" href="${esc(sefariaUrl(d.ref||ref))}" target="_blank" rel="noopener">${esc(t("openSefaria"))} ↗</a></div>
+    <ol class="reader-text">${paras.map(p=>`<li>${cleanHTML(p)}</li>`).join("")}</ol>
+    <div class="reader-nav">${nav("prev")}${nav("next")}</div>
+    <p class="reader-src">${esc(t("readerSrc"))}${v.versionTitle?` · ${esc(v.versionTitle)}`:""}</p>
+  </article>
+  ${sb?`<div class="panel reader-cta"><b>${esc(t("readerCta"))}</b><button type="button" class="btn btn-gold btn-sm" data-act-learn="tosubj">${esc(t("readerCtaBtn",{x:sb[lang]}))} ${arrow()}</button></div>`:""}`;
+}
+document.addEventListener("click", e=>{
+  const tk=e.target.closest("[data-take]");
+  if(tk){ const [subj,track,i]=tk.dataset.take.split("|"); W=freshWizard(); prefillCommunity();
+    W.subject=subj; W.track=track; W.optIdx=+i; W.n=subjById(subj).opts[track][+i].n;
+    W.step = (S.auth&&S.auth.verified) ? 3 : 1; go("join"); return; }
+  const rt=e.target.closest("[data-read-to]");
+  if(rt){ readRef = rt.dataset.readTo.replace(/ /g,"_"); go("read", null, {replace:true}); return; }
+  const al=e.target.closest("[data-act-learn]");
+  if(al){
+    if(al.dataset.actLearn==="toall") backTo("learn", ()=>navigate("learn"));
+    else { const h = subjById(readSubj) ? "learn/"+readSubj : "learn"; backTo(h, ()=>navigate(h)); }
+  }
+});
+
 /* ---------- global clicks ---------- */
 function afterSignin(){ return W.subject ? 3 : 2; }
 document.addEventListener("click", e=>{
@@ -512,11 +692,13 @@ function boot(){
   window.Store.watchStats(st=>{ S.stats=st; renderStats(); });
   window.Store.init(async user=>{
     S.auth=user; await refreshMine(); S.ready=true;
-    if(view==="join"){ if(user && user.verified && W._fromMe){ W=freshWizard(); LS.del("atgar_draft"); go("me"); return; } if(user && user.verified && STEPS[W.step]==="signin"){ W.step = afterSignin(); } renderWizard(); }
+    if(view==="join"){ if(user && user.verified && W._fromMe){ W=freshWizard(); LS.del("atgar_draft"); go("me"); return; } if(user && user.verified && STEPS[W.step]==="signin"){ W.step = afterSignin(); W._replace = true; } renderWizard(); }
     if(view==="me") renderMe();
   });
-  const h=(location.hash||"").slice(1);
-  if(h==="join") go("join"); else if(h==="me") go("me");
+  const h=curHash();
+  navStack[0]=""; try{ history.replaceState({i:0},"",location.href); }catch(e){}
+  if(h && !/^ref-/i.test(h) && h!=="home") navigate(h, {replace:true});
+  else if(h) { try{ history.replaceState({i:0},"",location.pathname+location.search); }catch(e){} }
 }
 if(window.Store) boot(); else window.addEventListener("store-ready", boot, {once:true});
 })();
