@@ -160,7 +160,7 @@ function applyLang(){
 }
 
 /* ---------- home ---------- */
-function trackKey(k){ return k==="peak"?"VENTURE":k.toUpperCase(); }
+function trackKey(k){ return {seed:"RING",growth:"BRACELET",peak:"NECKLACE"}[k]||k.toUpperCase(); }
 function renderTrackCards(){
   $("#trackCards").innerHTML = TRACKS.map(k=>`
     <button type="button" class="track" data-start-track="${k}"><svg class="glyph" style="color:var(--gold-lo)"><use href="#${GLYPH[k]}"/></svg>

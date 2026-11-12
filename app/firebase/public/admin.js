@@ -10,7 +10,7 @@ const $ = s => document.querySelector(s);
 const nf = n => new Intl.NumberFormat("he-IL").format(n || 0);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]));
 const NAMES = {
-  track: { seed: "זריעה", growth: "צמיחה", peak: "פסגה" },
+  track: { seed: "טבעת", growth: "צמיד", peak: "שרשרת" },
   subject: { tanach: "תנ״ך", mussar: "מוסר ופרקי אבות", machshava: "מחשבת ישראל", halacha: "הלכה", rambam: "רמב״ם", gemara: "גמרא", custom: "התחייבות אישית" },
   sector: { secular: "חילונית", traditional: "מסורתית", dati: "דתית-לאומית", haredi: "חרדית", other: "אחרת", unknown: "לא צוין", "": "לא צוין" }
 };
@@ -36,7 +36,7 @@ function table(el, obj, names) {
 
 async function load() {
   const s = await getDoc(doc(db, "stats", "global")); const st = s.exists() ? s.data() : {};
-  const k = [["commitments", "התחייבויות"], ["participants", "נרשמים"], ["activeParticipants", "נרשמים שהתחייבו"], ["completed", "התחייבויות שהושלמו"], ["referredJoins", "הצטרפו דרך שגרירים"]];
+  const k = [["commitments", "התחייבויות"], ["participants", "נרשמים"], ["activeParticipants", "נרשמים שהתחייבו"], ["completed", "התחייבויות שהושלמו"], ["referredJoins", "הצטרפו דרך יהלומים"]];
   $("#kpis").innerHTML = k.map(([f, l]) => `<div class="kpi"><b>${nf(st[f])}</b><span>${l}</span></div>`).join("") +
     `<div class="kpi"><b>${nf(Math.max(0, 600000 - (st.commitments || 0)))}</b><span>נותרו ליעד 600,000</span></div>`;
   table($("#t-track"), st.byTrack, NAMES.track);
