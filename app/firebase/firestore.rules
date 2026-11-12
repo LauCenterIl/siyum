@@ -55,18 +55,22 @@ service cloud.firestore {
       match /commitments/{cid} {
         function validCommitment(c) {
           return c.keys().hasOnly(['track', 'subject', 'optIdx', 'n', 'u', 'customText', 'customUnit',
-                                   'ded', 'label', 'unitLabel', 'start', 'done', 'createdAt', 'updatedAt'])
+                                   'ded', 'label', 'unitLabel', 'start', 'done', 'createdAt', 'updatedAt',
+                                   'book', 'bookHe', 'sel', 'kind', 'doneSel'])
             && c.track in ['seed', 'growth', 'peak']
             && c.subject in ['tanach', 'mussar', 'machshava', 'halacha', 'rambam', 'gemara', 'custom']
             && c.n is number && c.n >= 1 && c.n <= 10000
             && validStr(c.u, 20) && validStr(c.get('customText', ''), 140)
-            && validStr(c.get('customUnit', ''), 30) && validStr(c.get('ded', ''), 120);
+            && validStr(c.get('customUnit', ''), 30) && validStr(c.get('ded', ''), 120)
+            && validStr(c.get('book', ''), 120) && validStr(c.get('bookHe', ''), 120)
+            && validStr(c.get('sel', ''), 4000) && validStr(c.get('kind', ''), 10) && validStr(c.get('doneSel', ''), 4000);
         }
         allow read: if isOwner(uid) || isAdmin();
         allow create: if isVerifiedOwner(uid) && validCommitment(request.resource.data)
           && request.resource.data.done == 0;
         allow update: if isVerifiedOwner(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done', 'updatedAt'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done', 'doneSel', 'updatedAt'])
+          && validStr(request.resource.data.get('doneSel', ''), 4000)
           && request.resource.data.done is number
           && request.resource.data.done >= 0 && request.resource.data.done <= resource.data.n;
         allow delete: if false;

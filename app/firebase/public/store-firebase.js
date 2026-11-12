@@ -105,9 +105,10 @@ window.Store = {
     const r = await addDoc(collection(db, "users", u.uid, "commitments"), c);
     return r.id;
   },
-  async updateProgress(id, done){
+  async updateProgress(id, done, doneSel){
     const u = auth.currentUser; if(!u) return;
-    await updateDoc(doc(db, "users", u.uid, "commitments", id), {done, updatedAt: serverTimestamp()});
+    const upd = {done, updatedAt: serverTimestamp()}; if(typeof doneSel==="string") upd.doneSel = doneSel;
+    await updateDoc(doc(db, "users", u.uid, "commitments", id), upd);
   },
   async updatePhone(phone){
     const u = auth.currentUser; if(!u) return;

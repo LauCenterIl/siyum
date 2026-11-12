@@ -52,10 +52,95 @@ function inviteLink(){ const code = S.me && S.me.code; if(!code) return siteBase
 function communityKey(name, city){ const n=(name||"").trim(); if(!n) return ""; return (n+"|"+(city||"").trim()).toLowerCase().replace(/["'״׳`]/g,"").replace(/\s+/g," ").replace(/\//g,"-").slice(0,120); }
 function firstName(){ const n = (S.auth&&S.auth.name) || (S.me&&S.me.name) || W.name || ""; return n.split(" ")[0]; }
 
+/* ---------- free choice: any book, any chapters ---------- */
+const BOOKS = window.BOOKS || {};
+let LF = null;                       /* the free-choice picker on a subject page (reading mode) */
+const partsCache = {};
+function bookOf(subj, bi){ const b=(BOOKS[subj]||[])[bi]; if(!b) return null; return {i:+bi, t:b[0], he:b[1], kind:b[2], n:b[3]||0, sec:b[4]||"", start:b[5]||(b[2]==="daf"?2:1)}; }
+function bookByTitle(subj, title){ const i=(BOOKS[subj]||[]).findIndex(b=>b[0]===title); return i<0 ? null : bookOf(subj,i); }
+async function loadParts(title){
+  if(partsCache[title]) return partsCache[title];
+  const d = await fetch("https://www.sefaria.org/api/shape/"+encodeURIComponent(title)).then(r=>r.json());
+  const sh = Array.isArray(d) ? d[0] : d; const bookHe = (sh && (sh.heBook||sh.heTitle)) || "";
+  const parts = ((sh && sh.chapters) || []).filter(c=>c && typeof c==="object" && (c.length || (Array.isArray(c.chapters) ? c.chapters.some(x=>x) : c.chapters>0)))
+    .map(c=>({t:c.title, he:String(c.heTitle||c.title).replace(bookHe+", ","")}));
+  if(!parts.length) throw new Error("no parts");
+  partsCache[title]=parts; return parts;
+}
+function unitIds(b, parts){ if(b.kind==="part") return (parts||[]).map((_,i)=>i+1); const out=[]; for(let i=b.start;i<=b.n;i++) out.push(i); return out; }
+function numFmt(id, L){ return (L||lang)==="he" ? gem(id) : String(id); }
+function unitName(b, id, parts, L){ L=L||lang; if(b.kind==="part"){ const p=parts&&parts[id-1]; return p ? (L==="he"?p.he:p.t) : "#"+id; } return numFmt(id, L); }
+function unitRef(b, id, parts){ if(b.kind==="daf") return b.t+" "+id+"a"; if(b.kind==="part"){ const p=parts&&parts[id-1]; return p ? p.t.indexOf(b.t)===0 ? p.t : b.t+", "+p.t : b.t; } return b.t+" "+id; }
+function packSel(arr){ const a=[...new Set(arr.map(Number))].filter(x=>x>0).sort((x,y)=>x-y); const out=[]; for(let i=0;i<a.length;){ let j=i; while(j+1<a.length && a[j+1]===a[j]+1) j++; out.push(i===j ? String(a[i]) : a[i]+"-"+a[j]); i=j+1; } return out.join(","); }
+function unpackSel(str){ const out=[]; String(str||"").split(",").forEach(p=>{ if(!p) return; const [x,y]=p.split("-").map(Number); if(y){ for(let i=x;i<=y && out.length<5000;i++) out.push(i); } else if(x) out.push(x); }); return out; }
+function freeLabel(c, L){
+  const TT = window.T[L] || window.T.he, a = unpackSel(c.sel), kind = c.kind || "perek";
+  const bookName = L==="he" ? (c.bookHe||c.book) : c.book;
+  const b = c.subject && bookByTitle(c.subject, c.book);
+  if(b && b.kind!=="part" && a.length === (b.n-b.start+1)) return bookName+" - "+TT.wholeBook;
+  if(kind==="part") return bookName+" - "+a.length+" "+TT.unitMany.part;
+  const rng = packSel(a).split(",").map(r=>r.split("-").map(x=>numFmt(+x,L)).join("-")).join(", ");
+  return bookName+", "+(a.length===1 ? TT.unitOne[kind] : TT.unitMany[kind])+" "+rng;
+}
+function freeState(mode){ return mode==="pick" ? W.free : LF; }
+function freePickerHTML(mode, F){
+  const list = BOOKS[F.subj] || [];
+  let opts = `<option value="">${esc(t("freeBookPh"))}</option>`, grp = null;
+  list.forEach((b,i)=>{ const sec=b[4]||""; if(sec!==grp){ if(grp) opts+=`</optgroup>`; if(sec) opts+=`<optgroup label="${esc(lang==="he"?(window.BOOK_SECTIONS[sec]||sec):sec)}">`; grp=sec; }
+    opts += `<option value="${i}" ${F.bi===i?"selected":""}>${esc(lang==="he"?b[1]:b[0].replace("Mishneh Torah, ",""))}</option>`; });
+  if(grp) opts+=`</optgroup>`;
+  let h = `<div class="free-panel" data-free-mode="${mode}"><div class="field"><label for="fb-book-${mode}">${esc(t("freeBook"))}</label><select id="fb-book-${mode}" data-free-book>${opts}</select></div>`;
+  const b = F.bi!=null ? bookOf(F.subj, F.bi) : null;
+  if(b){
+    const parts = b.kind==="part" ? partsCache[b.t] : null;
+    if(b.kind==="part" && !parts){
+      h += `<p class="free-note">${esc(t("freeLoading"))}</p>`;
+      loadParts(b.t).then(()=>{ mode==="pick" ? renderWizard() : renderLearn(); }).catch(()=>{ const n=document.querySelector(`.free-panel[data-free-mode="${mode}"] .free-note`); if(n) n.textContent=t("freeErr"); });
+    } else {
+      const ids = unitIds(b, parts), sel = new Set(F.sel||[]), one=t("unitOne")[b.kind], many=t("unitMany")[b.kind];
+      if(mode==="pick"){
+        h += `<div class="free-head"><b>${esc(t("freeUnits",{u:many}))}</b><span>`+
+          (b.kind!=="part" ? `<label>${esc(t("freeFrom"))} <input type="number" id="fb-from" min="${b.start}" max="${b.n}" value="${b.start}"></label><label>${esc(t("freeTo"))} <input type="number" id="fb-to" min="${b.start}" max="${b.n}" value="${b.n}"></label><button type="button" class="btn btn-ghost btn-sm" data-free-act="range">${esc(t("freeAddRange"))}</button>` : "")+
+          `<button type="button" class="btn btn-ghost btn-sm" data-free-act="all">${esc(t("freeAll"))}</button><button type="button" class="btn btn-ghost btn-sm" data-free-act="clear">${esc(t("freeClear"))}</button></span></div>`;
+        h += `<div class="u-grid ${b.kind==="part"?"parts":""}">`+ids.map(id=>`<button type="button" class="u-chip ${sel.has(id)?"on":""}" data-unit="${id}" aria-pressed="${sel.has(id)}">${esc(unitName(b,id,parts))}</button>`).join("")+`</div>`;
+        h += `<p class="free-count">${esc(sel.size ? t("freeCount",{n:nf(sel.size),u:many}) : t("freeNone"))}</p>`;
+      } else {
+        h += `<p class="free-note">${esc(t("freeReadHint",{u1:one}))}</p><div class="u-grid ${b.kind==="part"?"parts":""}">`+ids.map(id=>`<button type="button" class="u-chip" data-route="read/${F.subj}/${esc(unitRef(b,id,parts).replace(/ /g,"_"))}">${esc(unitName(b,id,parts))}</button>`).join("")+`</div>
+          <div style="margin-top:16px"><button type="button" class="btn btn-gold btn-sm" data-free-act="commit">${esc(t("freeCommit"))}</button></div>`;
+      }
+    }
+  }
+  return h + `</div>`;
+}
+document.addEventListener("change", e=>{
+  const s=e.target.closest("[data-free-book]"); if(!s) return;
+  const mode=s.closest(".free-panel").dataset.freeMode, F=freeState(mode); if(!F) return;
+  F.bi = s.value==="" ? null : +s.value; F.sel = [];
+  if(mode==="pick"){ W.n=0; renderWizard(); } else renderLearn();
+});
+document.addEventListener("click", e=>{
+  const u=e.target.closest(".free-panel[data-free-mode='pick'] [data-unit]");
+  const fa=e.target.closest(".free-panel [data-free-act]");
+  if(!u && !fa) return;
+  const mode=(u||fa).closest(".free-panel").dataset.freeMode, F=freeState(mode); if(!F) return;
+  const b = bookOf(F.subj, F.bi);
+  if(u){ const id=+u.dataset.unit; const s=new Set(F.sel||[]); s.has(id)?s.delete(id):s.add(id); F.sel=[...s].sort((x,y)=>x-y); }
+  else {
+    const act=fa.dataset.freeAct;
+    if(act==="commit"){ W=freshWizard(); prefillCommunity(); W.subject=F.subj; W.optIdx=-1; W.free={subj:F.subj, bi:F.bi, sel:[]}; W.n=0; W.step=0; go("join"); return; }
+    const ids = b ? unitIds(b, partsCache[b.t]) : [];
+    if(act==="all") F.sel=ids.slice();
+    if(act==="clear") F.sel=[];
+    if(act==="range"){ let a=+($("#fb-from")||{}).value, z=+($("#fb-to")||{}).value; if(a>z) [a,z]=[z,a]; const s=new Set(F.sel||[]); ids.forEach(id=>{ if(id>=a && id<=z) s.add(id); }); F.sel=[...s].sort((x,y)=>x-y); }
+  }
+  if(mode==="pick"){ W.n=F.sel.length; renderWizard(); renderPace(); }
+});
+
 /* ---------- commitment text ---------- */
 function labelFor(c, lg){
   const L = lg || lang;
   if(c.subject==="custom") return c.customText;
+  if(c.book || c.optIdx===-1) return freeLabel(c, L);
   const o = subjById(c.subject).opts[c.track][c.optIdx];
   if(c.n===o.n || c.u==="pct") return o[L];
   const sub = subjById(c.subject)[L]; const ul = (U[L]&&U[L][c.u])||c.u;
@@ -157,7 +242,7 @@ function clampStep(i){
   if(i>=1 && !W.track) return 0;
   if(i>=2 && !verified) return 1;
   if(i>=3 && !W.subject) return 2;
-  if(i>=4 && (W.subject==="custom" ? !W.customText : W.optIdx==null)) return 3;
+  if(i>=4 && (W.subject==="custom" ? !W.customText : W.optIdx===-1 ? !(W.free && W.free.sel && W.free.sel.length) : W.optIdx==null)) return 3;
   if(i===STEPS.length-1 && W.step!==i) return 4;
   return i;
 }
@@ -244,8 +329,12 @@ function renderWizard(){
       h+=`<div class="panel form"><div class="field"><label for="c-what">${esc(t("customWhat"))}</label><input id="c-what" type="text" maxlength="140" placeholder="${esc(t("customWhatPh"))}" value="${esc(W.customText)}"></div><div class="row2"><div class="field"><label for="c-n">${esc(t("customN"))}</label><input id="c-n" type="number" min="1" max="9999" value="${esc(W.n||10)}"></div><div class="field"><label for="c-u">${esc(t("customU"))}</label><input id="c-u" type="text" maxlength="30" placeholder="${esc(t("customUPh"))}" value="${esc(W.customUnit)}"></div></div><div id="paceBox"></div><div class="err" id="err"></div></div>`;
     } else {
       const sb=subjById(W.subject); const opts=sb.opts[W.track];
-      h+=`<div class="choice-grid c3">`+opts.map((o,i)=>`<button class="choice ${W.optIdx===i?"sel":""}" data-opt="${i}"><span class="k">${esc(sb[lang])} · ${esc(t("trackName")[W.track])}</span><h3 style="font-size:22px">${esc(o[lang])}</h3>${o.u!=="pct"?`<span class="amt">${nf(o.n)} ${esc(unitLabel(o.u))}</span>`:""}</button>`).join("")+`</div>`;
-      if(W.optIdx!=null){
+      h+=`<div class="choice-grid c3">`+opts.map((o,i)=>`<button class="choice ${W.optIdx===i?"sel":""}" data-opt="${i}"><span class="k">${esc(sb[lang])} · ${esc(t("trackName")[W.track])}</span><h3 style="font-size:22px">${esc(o[lang])}</h3>${o.u!=="pct"?`<span class="amt">${nf(o.n)} ${esc(unitLabel(o.u))}</span>`:""}</button>`).join("")+
+        (BOOKS[W.subject]?`<button class="choice free-card ${W.optIdx===-1?"sel":""}" data-opt="-1"><span class="k">${esc(t("freeTag"))}</span><h3 style="font-size:22px">${esc(t("freeH"))}</h3><p>${esc(t("freeP"))}</p></button>`:"")+`</div>`;
+      if(W.optIdx===-1){
+        if(!W.free || W.free.subj!==W.subject) W.free={subj:W.subject, bi:null, sel:[]};
+        h+=`<div class="panel" style="margin-top:18px">${freePickerHTML("pick", W.free)}<div id="paceBox"></div><div class="err" id="err"></div></div>`;
+      } else if(W.optIdx!=null){
         const o=opts[W.optIdx]; const ti=TRACKS.indexOf(W.track);
         h+=`<div class="panel goal-box" style="margin-top:18px"><div class="adjust">
           <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" data-act="smaller" ${ti===0?"disabled":""}>− ${esc(t("smaller"))}</button><button class="btn btn-ghost btn-sm" data-act="bigger" ${ti===2?"disabled":""}>+ ${esc(t("bigger"))}</button></div>
@@ -301,6 +390,7 @@ function remControls(r, phone, prefix){
 function currentGoalText(){
   if(W.subject==="custom") return W.customText || "...";
   if(!W.subject||W.optIdx==null) return "...";
+  if(W.optIdx===-1) return freeCommitment().label.he && labelFor(freeCommitment()) || "...";
   return labelFor({subject:W.subject,track:W.track,optIdx:W.optIdx,n:W.n,u:subjById(W.subject).opts[W.track][W.optIdx].u});
 }
 function canNext(){
@@ -308,13 +398,14 @@ function canNext(){
   if(s==="track") return !!W.track;
   if(s==="signin") return !!(S.auth && S.auth.verified);
   if(s==="subject") return !!W.subject;
-  if(s==="goal") return W.subject==="custom" ? true : W.optIdx!=null;
+  if(s==="goal") return W.subject==="custom" ? true : W.optIdx===-1 ? !!(W.free && W.free.sel && W.free.sel.length) : W.optIdx!=null;
   return true;
 }
 function renderPace(){
   const el=$("#paceBox"); if(!el) return;
   let n, u;
   if(W.subject==="custom"){ n = Math.max(1, parseInt(($("#c-n")||{}).value)||0); u = ($("#c-u")||{}).value || t("customUPh"); }
+  else if(W.optIdx===-1){ const b=W.free&&bookOf(W.free.subj,W.free.bi); n=(W.free&&W.free.sel||[]).length; if(!b||!n){ el.innerHTML=""; return; } u=t("unitMany")[b.kind]; }
   else { if(W.optIdx==null){ el.innerHTML=""; return; } const o=subjById(W.subject).opts[W.track][W.optIdx]; n=W.n; u=unitLabel(o.u); if(o.u==="pct"){ el.innerHTML=`<div class="pace"><div>${esc(t("paceA",{d:nf(daysLeft())}))}</div></div>`; return; } }
   const d=Math.max(1,daysLeft()); const perDay=n/d; let r, per;
   if(perDay>=1){ r=(Math.round(perDay*10)/10).toString(); per=t("perDay"); }
@@ -323,9 +414,9 @@ function renderPace(){
 }
 function bindWizard(){
   const box=$("#wiz");
-  box.querySelectorAll("[data-track]").forEach(b=>b.onclick=()=>{ W.track=b.dataset.track; W.optIdx=null; W.step = (S.auth&&S.auth.verified) ? afterSignin() : 1; renderWizard(); window.scrollTo(0,0); });
+  box.querySelectorAll("[data-track]").forEach(b=>b.onclick=()=>{ W.track=b.dataset.track; if(W.optIdx!==-1) W.optIdx=null; W.step = (S.auth&&S.auth.verified) ? afterSignin() : 1; renderWizard(); window.scrollTo(0,0); });
   box.querySelectorAll("[data-subj]").forEach(b=>b.onclick=()=>{ W.subject=b.dataset.subj; W.optIdx=null; if(W.subject==="custom") W.n=W.n||10; W.step++; renderWizard(); window.scrollTo(0,0); });
-  box.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{ W.optIdx=+b.dataset.opt; W.n=subjById(W.subject).opts[W.track][W.optIdx].n; renderWizard(); });
+  box.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{ W.optIdx=+b.dataset.opt; W.n = W.optIdx===-1 ? ((W.free&&W.free.subj===W.subject&&W.free.sel||[]).length) : subjById(W.subject).opts[W.track][W.optIdx].n; renderWizard(); });
   box.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{ captureDetails(); const k=b.dataset.seg,v=b.dataset.val; if(k==="gender") W.details.gender=v; else if(k==="sector") W.details.sector = W.details.sector===v ? "" : v; else W.rem[k]=v; renderWizard(); });
   ["c-n","c-u","c-what"].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener("input",()=>{ W.customText=$("#c-what").value; W.customUnit=$("#c-u").value; W.n=Math.max(1,parseInt($("#c-n").value)||1); renderPace(); saveDraft(); }); });
   box.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act, b));
@@ -393,10 +484,12 @@ async function act(a, btn){
     return;
   }
   if(a==="signout"){ await window.Store.signOut(); renderWizard(); return; }
+  if((a==="smaller"||a==="bigger") && W.optIdx===-1) return;
   if(a==="smaller"||a==="bigger"){ const ti=TRACKS.indexOf(W.track)+(a==="bigger"?1:-1); if(ti<0||ti>2) return; W.track=TRACKS[ti]; W.n=subjById(W.subject).opts[W.track][W.optIdx].n; renderWizard(); toast(t("trackName")[W.track]); return; }
   if(a==="inc"||a==="dec"){ const o=subjById(W.subject).opts[W.track][W.optIdx]; const step=o.n>=50?5:1; W.n=Math.max(1,Math.min(9999,W.n+(a==="inc"?step:-step))); $("#nOut").textContent=nf(W.n)+" "+unitLabel(o.u); renderPace(); saveDraft(); return; }
   if(a==="next"){
     const s=STEPS[W.step];
+    if(s==="goal" && W.optIdx===-1 && !(W.free && W.free.sel && W.free.sel.length)) return setErr(t("errFree"));
     if(s==="goal" && W.subject==="custom"){ W.customText=$("#c-what").value.trim(); W.customUnit=$("#c-u").value.trim()||t("customUPh"); W.n=Math.max(1,parseInt($("#c-n").value)||1); if(!W.customText) return setErr(t("errCustom")); }
     if(s==="details"){
       captureDetails();
@@ -410,8 +503,20 @@ async function act(a, btn){
     W.step = (s==="signin") ? afterSignin() : W.step+1; renderWizard(); window.scrollTo(0,0);
   }
 }
+function freeCommitment(){
+  const F=W.free||{}, b=bookOf(F.subj||W.subject, F.bi); if(!b) return {label:{}};
+  const sel=packSel(F.sel||[]), u=b.kind;
+  const base={track:W.track, subject:W.subject, optIdx:-1, n:(F.sel||[]).length, u, customText:"", customUnit:"", ded:(W.details&&W.details.ded)||"", book:b.t, bookHe:b.he, sel, kind:b.kind, doneSel:""};
+  base.label={he:labelFor(base,"he"), en:labelFor(base,"en")};
+  return base;
+}
 async function commit(){
   const isCustom = W.subject==="custom";
+  if(W.optIdx===-1){
+    const c=freeCommitment();
+    const commitment=Object.assign(c, {unitLabel:{he:U.he[c.u], en:U.en[c.u]}, start:new Date().toISOString()});
+    return commitWith(commitment);
+  }
   const o = isCustom?null:subjById(W.subject).opts[W.track][W.optIdx];
   const base = {track:W.track, subject:W.subject, optIdx: isCustom?null:W.optIdx, n:W.n, u: isCustom?"custom":o.u, customText: isCustom?W.customText:"", customUnit: isCustom?W.customUnit:"", ded:W.details.ded||""};
   const commitment = Object.assign({}, base, {
@@ -419,6 +524,9 @@ async function commit(){
     unitLabel:{he: isCustom?W.customUnit:U.he[o.u], en: isCustom?W.customUnit:U.en[o.u]},
     start: new Date().toISOString()
   });
+  return commitWith(commitment);
+}
+async function commitWith(commitment){
   const d=W.details;
   const profile = {age:d.age, gender:d.gender, sector:d.sector, city:d.city, community:d.community, communityKey: communityKey(d.community, d.city), phone: W.rem.ch==="mail" ? (d.phone||"") : d.phone};
   await window.Store.commit({profile, rem:Object.assign({},W.rem), consent:t("consent"), ref:LS.get("atgar_ref")||null, name: W.name || "", lang, commitment});
@@ -478,7 +586,7 @@ function renderMe(){
     return `<article class="cm"><div class="cm-top">${ringSVG(p)}<div style="display:grid;gap:6px;min-width:0"><span class="tag">${esc(c.subject==="custom"?t("customSubj"):(subjById(c.subject)[lang]+" · "+t("trackName")[c.track]))}</span><h3>${esc(cGoal(c))}</h3><div>${st}</div></div></div>
       <div style="display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;color:var(--cream-dim);font-size:15px;font-variant-numeric:tabular-nums"><span>${esc(t("progress"))}: <b style="color:var(--cream)">${nf(c.done||0)}</b> / ${nf(c.n)} ${esc(u)}</span><span>${esc(t("paceA",{d:nf(daysLeft())}))}</span></div>
       ${!done?`<div style="font-size:14px;color:var(--cream-faint)">${esc(t("expected",{e:nf(Math.floor(exp))+" "+u}))}</div>`:""}
-      <div class="log"><button class="btn btn-gold btn-sm" data-log="${esc(c.id)}" ${done?"disabled":""}>${c.u==="pct"?"+10%":"+1"}</button><label class="field" style="display:flex;gap:8px;align-items:center"><span style="font-size:14px;color:var(--cream-faint)">${esc(t("setTo"))}</span><input type="number" min="0" max="${c.n}" value="${c.done||0}" style="width:96px" id="set-${esc(c.id)}"></label><button class="btn btn-ghost btn-sm" data-set="${esc(c.id)}">${esc(t("save"))}</button></div>
+      ${c.sel ? markHTML(c) : `<div class="log"><button class="btn btn-gold btn-sm" data-log="${esc(c.id)}" ${done?"disabled":""}>${c.u==="pct"?"+10%":"+1"}</button><label class="field" style="display:flex;gap:8px;align-items:center"><span style="font-size:14px;color:var(--cream-faint)">${esc(t("setTo"))}</span><input type="number" min="0" max="${c.n}" value="${c.done||0}" style="width:96px" id="set-${esc(c.id)}"></label><button class="btn btn-ghost btn-sm" data-set="${esc(c.id)}">${esc(t("save"))}</button></div>`}
       <p class="encourage">${esc(encFor(p))}</p>
       ${c.ded?`<p style="color:var(--cream-faint);font-style:italic">${esc(c.ded)}</p>`:""}
     </article>`;
@@ -546,6 +654,10 @@ function subjectPageHTML(sb){
   let h = `<button type="button" class="back crumb" data-act-learn="toall">${backArrow()} ${esc(t("allSubjects"))}</button>
   <div class="learn-hero"><div class="eyebrow">${esc(lang==="he"?sb.dh:sb.de)}</div><h1>${esc(sb[lang])}</h1><p>${esc(info[lang]||"")}</p>
   ${info.lib?`<a class="btn btn-ghost btn-sm" href="https://www.sefaria.org.il/${info.lib}?lang=he" target="_blank" rel="noopener">${esc(t("libAll"))} ↗</a>`:""}</div>`;
+  if(BOOKS[sb.id]){
+    if(!LF || LF.subj!==sb.id) LF={subj:sb.id, bi:null, sel:[]};
+    h += `<section class="learn-sec"><h2 style="font-size:28px">${esc(t("freeH"))}</h2><p class="learn-sub">${esc(t("freeP"))}</p><div class="panel">${freePickerHTML("read", LF)}</div></section>`;
+  }
   TRACKS.forEach(k=>{
     h += `<section class="learn-sec">${levelHead(k)}<div class="opt-grid">`+ sb.opts[k].map((o,i)=>{
       const ref = srcOf(sb.id,k,i);
@@ -639,6 +751,24 @@ document.addEventListener("click", async e=>{
   if(rb){ await remAction(rb.dataset.rem); return; }
   const sg=e.target.closest("#remPanel [data-seg]");
   if(sg){ const ph=document.getElementById("m-phone"); if(ph) remDraft.phone=ph.value; remDraft.rem[sg.dataset.seg]=sg.dataset.val; renderMe(); return; }
+});
+function markHTML(c){
+  const b = bookByTitle(c.subject, c.book) || {t:c.book, he:c.bookHe, kind:c.kind||"perek", n:0, start:1};
+  const parts = b.kind==="part" ? partsCache[b.t] : null;
+  if(b.kind==="part" && !parts) loadParts(b.t).then(()=>{ if(view==="me") renderMe(); }).catch(()=>{});
+  const ids = unpackSel(c.sel), done = new Set(unpackSel(c.doneSel));
+  const next = ids.find(id=>!done.has(id));
+  return `<p style="font-size:14px;color:var(--cream-faint)">${esc(t("markHint",{u1:t("unitOne")[b.kind]}))}</p>
+    <div class="u-grid ${b.kind==="part"?"parts":""}">${ids.map(id=>`<button type="button" class="u-chip ${done.has(id)?"done":""}" data-mark="${esc(c.id)}|${id}" aria-pressed="${done.has(id)}">${done.has(id)?"✓ ":""}${esc(unitName(b,id,parts))}</button>`).join("")}</div>
+    ${next!=null?`<div><button type="button" class="btn btn-gold btn-sm" data-route="read/${esc(c.subject)}/${esc(unitRef(b,next,parts).replace(/ /g,"_"))}">${esc(t("readNext",{x:t("unitOne")[b.kind]+" "+unitName(b,next,parts)}))} 📖</button></div>`:""}`;
+}
+document.addEventListener("click", async e=>{
+  const m=e.target.closest("[data-mark]"); if(!m) return;
+  const [cid, idS]=m.dataset.mark.split("|"); const cm=S.commitments.find(x=>x.id===cid); if(!cm) return;
+  const id=+idS, done=new Set(unpackSel(cm.doneSel)); done.has(id)?done.delete(id):done.add(id);
+  const prev={done:cm.done, doneSel:cm.doneSel}; cm.doneSel=packSel([...done]); cm.done=Math.min(cm.n, done.size); renderMe();
+  try{ await window.Store.updateProgress(cm.id, cm.done, cm.doneSel); if(cm.done>=cm.n) toast(t("doneS")); }
+  catch(err){ cm.done=prev.done; cm.doneSel=prev.doneSel; renderMe(); toast(t("saveErr")); }
 });
 async function saveProgress(cm, v){
   const prev=cm.done||0; cm.done=v; renderMe();
