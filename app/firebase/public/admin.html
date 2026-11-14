@@ -39,8 +39,9 @@ code{direction:ltr;display:block;background:var(--ink);padding:8px 10px;border-r
 <body>
 <div class="wrap">
   <header><img src="/assets/logo-horizontal-compact.svg" alt="אתגר הסיום"><h1 style="font-size:26px">לוח ניהול</h1><div class="row"><span id="who" class="muted"></span><button id="signin">התחברות עם Google</button><button id="signout" hidden>התנתקות</button></div></header>
+  <main>
   <p id="msg" class="muted">יש להתחבר עם חשבון שהוגדר כמנהל.</p>
-  <main id="app" hidden>
+  <div id="app" hidden>
     <section class="kpis" id="kpis"></section>
     <section class="grid">
       <div class="card"><h2>לפי מסלול</h2><table id="t-track"></table></div>
@@ -51,7 +52,7 @@ code{direction:ltr;display:block;background:var(--ink);padding:8px 10px;border-r
       <div class="card"><h2>בתי כנסת וארגונים מובילים</h2><div class="scroll"><table id="t-comm"></table></div></div>
       <div class="card"><h2>קישור הצטרפות לקהילה</h2>
         <p class="muted">קישור שממלא מראש את שם בית הכנסת או הארגון, כדי שכל ההתחייבויות שלו ייספרו יחד. מתאים לשליחה לרבנים, מוסדות ומקומות עבודה.</p>
-        <div class="row"><input id="commName" placeholder="לדוגמה: בית הכנסת אוהל משה"></div>
+        <div class="row"><input id="commName" aria-label="שם בית הכנסת או הארגון" placeholder="לדוגמה: בית הכנסת אוהל משה"></div>
         <p></p><code id="commLink">-</code><p></p><button id="copyComm">העתקה</button></div>
     </section>
     <section class="card">
@@ -59,6 +60,7 @@ code{direction:ltr;display:block;background:var(--ink);padding:8px 10px;border-r
       <p class="muted">קובצי CSV נפתחים באקסל. הקבצים כוללים מידע אישי: יש לשמור אותם בהתאם לנוהלי אבטחת המידע של מרכז לאו ולא להעביר לגורמים שאינם מורשים.</p>
       <div class="row"><button class="btn-gold" id="expUsers">ייצוא משתתפים</button><button id="expCommit">ייצוא התחייבויות</button><span id="expStatus" class="muted"></span></div>
     </section>
+  </div>
   </main>
 </div>
 <script src="/config.js"></script>

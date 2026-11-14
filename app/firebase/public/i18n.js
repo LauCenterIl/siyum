@@ -304,3 +304,14 @@ Object.assign(window.T.en, {
  unitOne:{perek:"chapter",siman:"siman",daf:"daf",part:"section"}, unitMany:{perek:"chapters",siman:"simanim",daf:"dapim",part:"sections"},
  wholeBook:"the whole book", markHint:"Mark each {u1} you finish:", readNext:"Learn now: {x}"
 });
+
+Object.assign(window.T.he, {
+ skipMain:"דלג לתוכן הראשי", footA11y:"הצהרת נגישות", a11yOpen:"תפריט נגישות", a11yTitle:"תפריט נגישות", a11yClose:"סגירת תפריט הנגישות",
+ a11ySize:"גודל טקסט", a11yMinusSr:"הקטנת טקסט", a11yPlusSr:"הגדלת טקסט", a11yContrast:"ניגודיות גבוהה", a11yGray:"גווני אפור", a11yLinks:"הדגשת קישורים",
+ a11yFont:"גופן קריא", a11ySpace:"ריווח טקסט", a11yStill:"עצירת אנימציות", a11yCursor:"סמן גדול", a11yReset:"איפוס הגדרות", a11yStatement:"הצהרת נגישות"
+});
+Object.assign(window.T.en, {
+ skipMain:"Skip to main content", footA11y:"Accessibility statement", a11yOpen:"Accessibility menu", a11yTitle:"Accessibility menu", a11yClose:"Close the accessibility menu",
+ a11ySize:"Text size", a11yMinusSr:"Smaller text", a11yPlusSr:"Larger text", a11yContrast:"High contrast", a11yGray:"Grayscale", a11yLinks:"Highlight links",
+ a11yFont:"Readable font", a11ySpace:"Text spacing", a11yStill:"Stop animations", a11yCursor:"Large cursor", a11yReset:"Reset settings", a11yStatement:"Accessibility statement"
+});

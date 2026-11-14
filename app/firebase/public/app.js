@@ -153,7 +153,7 @@ function cUnit(c){ return c.u==="custom" ? (c.customUnit||"") : unitLabel(c.u); 
 function applyLang(){
   document.documentElement.lang = lang; document.documentElement.dir = lang==="he"?"rtl":"ltr";
   document.querySelectorAll("[data-t]").forEach(el=>{ const v=t(el.dataset.t); if(typeof v!=="string") return; if(v.includes("|")) el.innerHTML=lines(v); else el.textContent=v; });
-  $("#langBtn").textContent = lang==="he"?"EN":"עב";
+  $("#langBtn").textContent = lang==="he"?"EN":"עב"; $("#langBtn").setAttribute("aria-label", lang==="he"?"Switch to English":"מעבר לעברית"); $("#langBtn").setAttribute("lang", lang==="he"?"en":"he");
   renderTrackCards(); renderSubjChips(); renderRoad(); renderCountdown(); renderStats();
   const ref = LS.get("atgar_ref"); if(ref){ const b=$("#refBanner"); b.hidden=false; b.textContent=t("refBanner"); }
   if(view==="join") renderWizard(); if(view==="me") renderMe(); if(view==="learn") renderLearn(); if(view==="read") renderRead();
@@ -175,7 +175,7 @@ function renderRoad(){
   const names = lang==="he"?{chanukah:"חנוכה",purim:"פורים",pesach:"פסח",shavuot:"שבועות"}:{chanukah:"Chanukah",purim:"Purim",pesach:"Pesach",shavuot:"Shavuos"};
   const el=$("#roadEl"); el.querySelectorAll(".ms").forEach(n=>n.remove());
   MILESTONES.forEach((m,i)=>{ const d=document.createElement("div"); d.className="ms"+(i===MILESTONES.length-1?" last":"");
-    d.innerHTML=`<div class="node">${i+1}</div><h4>${esc(names[m.k])}</h4><div class="date">${esc(gregShort(m.date))}</div><div class="goal">${nf(m.goal)}</div>`; el.appendChild(d); });
+    d.innerHTML=`<div class="node" aria-hidden="true">${i+1}</div><h3>${esc(names[m.k])}</h3><div class="date">${esc(gregShort(m.date))}</div><div class="goal">${nf(m.goal)}</div>`; el.appendChild(d); });
   const first=new Date(MILESTONES[0].date), now=new Date();
   const frac = Math.min(1,Math.max(0,(now-first)/(SHAVUOT-first)));
   $("#roadProg").style.width = (frac*88)+"%";
@@ -427,7 +427,7 @@ function captureDetails(){
   const nm=v("d-name"); if(nm!==undefined) W.name=nm;
   const c=document.getElementById("d-consent"); if(c) W.consent=c.checked;
 }
-function setErr(m){ const e=$("#err"); if(e) e.textContent=m; return false; }
+function setErr(m){ const e=$("#err"); if(e){ e.setAttribute("role","alert"); e.textContent=m; } return false; }
 async function act(a, btn){
   if(a==="back"){
     captureDetails();
@@ -691,7 +691,7 @@ function readerHead(sb){
 async function renderRead(){
   const box=$("#reader"); if(!box) return;
   const sb = subjById(readSubj), ref = readRef;
-  box.innerHTML = readerHead(sb) + `<div class="reader"><p class="reader-load">${esc(t("readerLoading"))}</p></div>`;
+  box.innerHTML = readerHead(sb) + `<div class="reader" aria-busy="true"><h1 class="sr-only">${esc(ref.replace(/_/g," "))}</h1><p class="reader-load">${esc(t("readerLoading"))}</p></div>`;
   let d = readCache[ref];
   if(!d){
     try{
@@ -700,7 +700,7 @@ async function renderRead(){
       readCache[ref]=d;
     }catch(e){
       if(view!=="read" || readRef!==ref) return;
-      box.innerHTML = readerHead(sb) + `<div class="reader"><p class="reader-load">${esc(t("readerErr"))}</p><a class="btn btn-gold btn-sm" href="${esc(sefariaUrl(ref))}" target="_blank" rel="noopener">${esc(t("openSefaria"))} ↗</a></div>`;
+      box.innerHTML = readerHead(sb) + `<div class="reader"><h1 class="sr-only">${esc(ref.replace(/_/g," "))}</h1><p class="reader-load" role="alert">${esc(t("readerErr"))}</p><a class="btn btn-gold btn-sm" href="${esc(sefariaUrl(ref))}" target="_blank" rel="noopener">${esc(t("openSefaria"))} ↗</a></div>`;
       return;
     }
   }
@@ -729,6 +729,69 @@ document.addEventListener("click", e=>{
     else { const h = subjById(readSubj) ? "learn/"+readSubj : "learn"; backTo(h, ()=>navigate(h)); }
   }
 });
+
+
+/* ---------- accessibility: headings, titles, focus, announcements, menu ---------- */
+function promoteHeading(root){
+  if(!root || root.querySelector("h1")) return;
+  const h2=root.querySelector("h2"); if(!h2) return;
+  const h1=document.createElement("h1"); for(const at of h2.attributes) h1.setAttribute(at.name, at.value);
+  h1.classList.add("h2-like"); h1.innerHTML=h2.innerHTML; h2.replaceWith(h1);
+}
+let _lastTitleKey="", _navCount=0;
+function pageTitle(){
+  const site = lang==="he" ? "אתגר הסיום" : "The Siyum Challenge";
+  const h1 = document.querySelector(".view.on h1");
+  const txt = h1 ? h1.textContent.replace(/\s+/g," ").trim() : "";
+  if(view==="home") return lang==="he" ? "אתגר הסיום - מהסיום שלך ועד סיום הש״ס" : "The Siyum Challenge - from your siyum to the Siyum HaShas";
+  return (txt ? txt+" | " : "")+site;
+}
+function afterRender(focus){
+  ["#wiz","#me","#reader"].forEach(sel=>promoteHeading(document.querySelector(sel)));
+  /* keep heading levels in order for screen readers (no jump from h1 straight to h3) */
+  const v=document.querySelector(".view.on");
+  if(v){ let prev=0; v.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach(h=>{ const own=+h.tagName[1]; let lvl=own;
+    if(prev && own>prev+1) lvl=prev+1; if(lvl!==own) h.setAttribute("aria-level",String(lvl)); else h.removeAttribute("aria-level"); prev=lvl; }); }
+  document.querySelectorAll("svg:not([aria-label]):not([role])").forEach(s=>{ s.setAttribute("aria-hidden","true"); s.setAttribute("focusable","false"); });
+  document.querySelectorAll('a[target="_blank"]:not([data-nw])').forEach(l=>{ l.setAttribute("data-nw",""); const sp=document.createElement("span"); sp.className="sr-only"; sp.textContent=lang==="he"?" (נפתח בחלון חדש)":" (opens in a new window)"; l.appendChild(sp); });
+  const title=pageTitle(); if(document.title!==title) document.title=title;
+  const key=routeHash();
+  if(!afterRender._booted){ afterRender._booted=true; _lastTitleKey=key; return; }
+  if(focus && key!==_lastTitleKey){
+    const h1=document.querySelector(".view.on h1");
+    if(h1){ h1.setAttribute("tabindex","-1"); h1.focus({preventScroll:true}); }
+    const an=$("#announcer"); if(an){ an.textContent=""; setTimeout(()=>{ an.textContent=title; },60); }
+  }
+  _lastTitleKey=key;
+}
+new MutationObserver(()=>{ clearTimeout(afterRender._t); afterRender._t=setTimeout(()=>afterRender(true),30); })
+  .observe(document.querySelector("main")||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+
+const A11Y_KEYS=["contrast","gray","links","font","space","still","cursor"];
+let a11y = (function(){ try{ return JSON.parse(localStorage.getItem("atgar_a11y")||"{}")||{}; }catch(e){ return {}; } })();
+function a11yApply(){
+  const r=document.documentElement;
+  A11Y_KEYS.forEach(k=>r.classList.toggle("a11y-"+k, !!a11y[k]));
+  ["a11y-z1","a11y-z2","a11y-z3"].forEach((c,i)=>r.classList.toggle(c, (a11y.zoom||0)===i+1));
+  document.querySelectorAll("[data-a11y]").forEach(b=>b.setAttribute("aria-pressed", a11y[b.dataset.a11y] ? "true":"false"));
+  if(!a11y.still && typeof sparks._restart==="function") sparks._restart();
+  try{ localStorage.setItem("atgar_a11y", JSON.stringify(a11y)); }catch(e){}
+}
+function a11yToggle(open){
+  const p=$("#a11yPanel"), f=$("#a11yFab"); if(!p) return;
+  const show = open==null ? p.hidden : open; p.hidden=!show; f.setAttribute("aria-expanded", show?"true":"false");
+  if(show) (p.querySelector("[data-a11y-zoom]")||p).focus(); else f.focus();
+}
+document.addEventListener("click", e=>{
+  if(e.target.closest("[data-a11y-open]")){ e.preventDefault(); a11yToggle(); return; }
+  if(e.target.closest("[data-a11y-close]")){ a11yToggle(false); return; }
+  const z=e.target.closest("[data-a11y-zoom]"); if(z){ a11y.zoom=Math.max(0,Math.min(3,(a11y.zoom||0)+(+z.dataset.a11yZoom))); a11yApply(); return; }
+  const b=e.target.closest("[data-a11y]"); if(b){ a11y[b.dataset.a11y]=!a11y[b.dataset.a11y]; a11yApply(); return; }
+  if(e.target.closest("[data-a11y-reset]")){ a11y={}; a11yApply(); return; }
+  const p=$("#a11yPanel"); if(p && !p.hidden && !e.target.closest("#a11yPanel")) { p.hidden=true; $("#a11yFab").setAttribute("aria-expanded","false"); }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ const p=$("#a11yPanel"); if(p && !p.hidden) a11yToggle(false); } });
+a11yApply();
 
 /* ---------- global clicks ---------- */
 function afterSignin(){ return W.subject ? 3 : 2; }
@@ -800,7 +863,8 @@ function sparks(){
   let W2,H2,P=[]; const dpr=Math.min(2,window.devicePixelRatio||1);
   function size(){ const r=cv.getBoundingClientRect(); W2=r.width; H2=r.height; cv.width=W2*dpr; cv.height=H2*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); const count=Math.round(Math.min(140,W2/8)); P=Array.from({length:count},()=>mk(true)); }
   function mk(init){ return {x:Math.random()*W2, y: init?Math.random()*H2:H2+10, r:.6+Math.random()*1.8, v:.15+Math.random()*.55, a:.2+Math.random()*.7, w:Math.random()*Math.PI*2}; }
-  function draw(){ ctx.clearRect(0,0,W2,H2); for(const p of P){ p.y-=p.v; p.w+=.02; p.x+=Math.sin(p.w)*.25; if(p.y<-10) Object.assign(p,mk(false)); const fade=Math.min(1,p.y/(H2*.35)); ctx.beginPath(); ctx.fillStyle=`rgba(236,211,145,${p.a*fade})`; ctx.shadowColor="rgba(236,180,90,.9)"; ctx.shadowBlur=8; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } if(!reduce) requestAnimationFrame(draw); }
+  function draw(){ ctx.clearRect(0,0,W2,H2); for(const p of P){ p.y-=p.v; p.w+=.02; p.x+=Math.sin(p.w)*.25; if(p.y<-10) Object.assign(p,mk(false)); const fade=Math.min(1,p.y/(H2*.35)); ctx.beginPath(); ctx.fillStyle=`rgba(236,211,145,${p.a*fade})`; ctx.shadowColor="rgba(236,180,90,.9)"; ctx.shadowBlur=8; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } if(!reduce && !document.documentElement.classList.contains("a11y-still")) requestAnimationFrame(draw); else sparks._stopped=true; }
+  sparks._restart=()=>{ if(sparks._stopped && !reduce){ sparks._stopped=false; requestAnimationFrame(draw); } };
   size(); addEventListener("resize",size); draw();
 }
 
