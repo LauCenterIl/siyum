@@ -26,8 +26,9 @@ def step(msg): print("==> " + msg, flush=True)
 
 # 0. make sure the APIs are on
 step("enabling APIs")
-subprocess.run(["gcloud", "services", "enable", "firebasehosting.googleapis.com",
-                "firebaserules.googleapis.com", "firestore.googleapis.com", "--project", PROJECT, "-q"], check=False)
+if not os.environ.get("GITHUB_ACTIONS"):   # the GitHub deploy account may not turn APIs on; they are already on
+    subprocess.run(["gcloud", "services", "enable", "firebasehosting.googleapis.com",
+                    "firebaserules.googleapis.com", "firestore.googleapis.com", "--project", PROJECT, "-q"], check=False)
 
 # 1. security rules
 step("deploying Firestore security rules")
