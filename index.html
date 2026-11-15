@@ -1738,7 +1738,7 @@ let _lastTitleKey="", _navCount=0;
 function pageTitle(){
   const site = lang==="he" ? "אתגר הסיום" : "The Siyum Challenge";
   const h1 = document.querySelector(".view.on h1");
-  const txt = h1 ? h1.textContent.replace(/\s+/g," ").trim() : "";
+  const txt = h1 ? [...h1.childNodes].map(n=>n.textContent).join(" ").replace(/\s+/g," ").trim() : "";
   if(view==="home") return lang==="he" ? "אתגר הסיום - מהסיום שלך ועד סיום הש״ס" : "The Siyum Challenge - from your siyum to the Siyum HaShas";
   return (txt ? txt+" | " : "")+site;
 }
