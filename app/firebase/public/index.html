@@ -75,9 +75,12 @@ button{font:inherit;cursor:pointer}
 .hero canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 105%,rgba(228,138,60,.22),transparent 70%),radial-gradient(ellipse 50% 50% at 50% 0,rgba(201,162,74,.10),transparent 70%);pointer-events:none}
 .hero .wrap{position:relative;z-index:1;padding-block:44px 60px;display:grid;gap:26px;justify-items:center;text-align:center}
-.hero h1{font-size:clamp(34px,6.4vw,78px);font-weight:900;letter-spacing:-.01em;display:grid;gap:.08em}
-.hero h1 .l1{color:var(--cream)}
-.hero h1 .l1,.hero h1 .l2{display:block}
+.hero h1{font-size:clamp(30px,5.2vw,66px);font-weight:900;letter-spacing:-.01em;display:grid;gap:.2em;margin-inline:auto;line-height:1.15}
+.hero h1 .l2{font-size:.84em}
+html[lang="en"] .hero h1{font-size:clamp(26px,4.2vw,54px)}
+.hero h1 .l1{color:var(--cream);font-size:.56em;font-weight:700;line-height:1.35}
+.hero h1 .l3{color:var(--cream);font-size:.62em;font-weight:700}
+.hero h1 .l1,.hero h1 .l2,.hero h1 .l3{display:block}
 .hero-logo{width:min(400px,78vw);height:auto;filter:drop-shadow(0 10px 40px rgba(228,138,60,.25))}
 .hero .lead{font-size:clamp(17px,2.2vw,22px);color:var(--cream-dim);display:grid;gap:6px;justify-items:center}
 .hero .lead-1{color:var(--cream);font-weight:800;display:block;font-size:clamp(15px,4vw,22px)}
@@ -480,8 +483,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-hi)
   <section class="hero">
     <canvas id="sparks" aria-hidden="true"></canvas>
     <div class="wrap">
-      <img class="hero-logo" src="/assets/logo-stacked.svg" alt="אתגר הסיום - מהסיום שלך ועד סיום הש״ס - שבועות תשפ״ז" width="420" height="300">
-      <h1><span class="l1" data-t="heroH1a"></span><span class="l2 gold-text" data-t="heroH1b"></span></h1>
+      <img class="hero-logo" src="/assets/logo-stacked-notag.svg" alt="אתגר הסיום" width="420" height="300">
+      <h1><span class="l1" data-t="heroH1a"></span><span class="l2 gold-text" data-t="heroH1b"></span><span class="l3" data-t="heroH1c"></span></h1>
       <p class="invite" data-t="heroInvite"></p>
       <p class="lead"><strong class="lead-1" data-t="heroLead1"></strong><span class="lead-2" data-t="heroLead2"></span></p>
       <div class="hero-ctas">
@@ -622,7 +625,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-hi)
 
 <script src="/config.js"></script>
 <script>window.ATGAR_ASSETS={emblem:"/assets/emblem.svg",emblemLight:"/assets/emblem-light.svg"};</script>
-<script src="/i18n.js?v=6d9a1cdd"></script>
+<script src="/i18n.js?v=f3d0d7f2"></script>
 <script type="module" src="/store-firebase.js?v=0a6ce24d"></script>
 <script src="/app.js?v=f3a48a73" defer></script>
 </body>
