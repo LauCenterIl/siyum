@@ -88,7 +88,7 @@ window.Store = {
     const snap = await getDocs(q);
     return snap.docs.map(d => Object.assign({id:d.id}, d.data(), {createdAt: d.data().createdAt && d.data().createdAt.toDate ? d.data().createdAt.toDate().toISOString() : d.data().start}));
   },
-  async commit({profile, rem, consent, ref, name, lang, commitment}){
+  async commit({profile, rem, consent, ref, name, lang, commitment, active}){
     const u = auth.currentUser; if(!u) throw new Error("not signed in");
     try{ await u.getIdToken(true); }catch(e){}   // make sure the database sees the latest verified-email status
     const clean = o => { const r={}; Object.keys(o||{}).forEach(k=>{ if(o[k]!==undefined && o[k]!==null) r[k]=(typeof o[k]==="string")?o[k]:o[k]; }); return r; };
@@ -100,7 +100,7 @@ window.Store = {
     const existing = await getDoc(uref);
     const data = {
       name: String(name || u.displayName || "").slice(0,80), email: u.email || "", lang,
-      profile, rem, reminderActive: true,
+      profile, rem, reminderActive: active !== false,
       consent: {at: serverTimestamp(), text: consent},
       updatedAt: serverTimestamp()
     };

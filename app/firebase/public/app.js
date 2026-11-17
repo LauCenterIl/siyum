@@ -20,7 +20,7 @@ let view = "home";
 let learnSubj = null, readSubj = null, readRef = null;
 const S = {auth:null, me:null, commitments:[], stats:null, ready:false, community:null};
 let W = freshWizard();
-function freshWizard(){ return {step:0, track:null, subject:null, optIdx:null, n:null, customText:"", customUnit:"", name:"", details:{age:"",gender:"",sector:"",city:"",community:"",phone:"",ded:""}, rem:{ch:"wa",fr:"daily",tm:"evening"}, consent:false, t:Date.now()}; }
+function freshWizard(){ return {step:0, track:null, subject:null, optIdx:null, n:null, customText:"", customUnit:"", name:"", details:{age:"",gender:"",sector:"",city:"",community:"",phone:"",ded:""}, rem:{ch:"mail",fr:"daily",tm:"evening"}, consent:false, t:Date.now()}; }
 const LS = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
@@ -358,8 +358,8 @@ function renderWizard(){
     </div>
     <div class="panel form" style="margin-top:18px"><h3 style="font-size:24px">${esc(t("remH"))}</h3>
      ${remControls(r, d.phone)}
-     <div class="field"><span class="lbl" style="color:var(--cream-faint);font-weight:600">${esc(t("remPreview"))}</span><div class="preview-msg">${esc(t("remSample",{name:firstName(),goal:currentGoalText(),pct:12,greet:(t("greetTm")||{})[r.tm]||""}))}<small>${({morning:"08:00",noon:"13:00",evening:"20:30"})[r.tm]||"20:30"}</small></div></div>
-     <label class="check"><input id="d-consent" type="checkbox" ${W.consent?"checked":""}><span>${esc(t("consent"))}</span></label>
+     ${r.ch==="none"?"":`<div class="field"><span class="lbl" style="color:var(--cream-faint);font-weight:600">${esc(t("remPreview"))}</span><div class="preview-msg">${esc(t("remSample",{name:firstName(),goal:currentGoalText(),pct:12,greet:(t("greetTm")||{})[r.tm]||""}))}<small>${({morning:"08:00",noon:"13:00",evening:"20:30"})[r.tm]||"20:30"}</small></div></div>
+     <label class="check"><input id="d-consent" type="checkbox" ${W.consent?"checked":""}><span>${esc(t("consent"))}</span></label>`}
      <div class="hint" style="font-size:13px;color:var(--cream-faint)">${esc(t("privacy"))} <a href="privacy.html" target="_blank" rel="noopener">${esc(t("footPrivacy"))}</a></div>
      <div class="err" id="err"></div>
     </div>`;
@@ -378,11 +378,16 @@ function renderWizard(){
   saveDraft();
   if(view==="join"){ syncUrl(!!W._replace); W._replace=false; }
 }
+const LIVE_CH = {mail:true, wa:false, sms:false};   // WhatsApp and SMS open when their providers are connected
 function remControls(r, phone, prefix){
   const p = prefix||"d";
   const segBtns=(key,val,opts)=>opts.map(([v,l])=>`<button type="button" class="${val===v?"sel":""}" data-seg="${key}" data-val="${v}">${esc(l)}</button>`).join("");
-  return `<div class="field"><span class="lbl">${esc(t("remChannel"))}</span><div class="seg">${segBtns("ch",r.ch,[["wa",t("chWA")],["sms",t("chSMS")],["mail",t("chMail")]])}</div></div>
-     ${r.ch!=="mail"?`<div class="field"><label for="${p}-phone">${esc(t("fPhone"))}</label><input id="${p}-phone" type="tel" dir="ltr" autocomplete="tel" placeholder="050-0000000" value="${esc(phone||"")}"><span class="hint">${esc(t("fPhoneHint"))}</span></div>`:""}
+  if(!LIVE_CH[r.ch] && r.ch!=="none") r.ch="mail";
+  const chBtn=(v,l)=> LIVE_CH[v]||v==="none" ? `<button type="button" class="${r.ch===v?"sel":""}" data-seg="ch" data-val="${v}">${esc(l)}</button>` : `<button type="button" disabled aria-disabled="true" class="soon">${esc(l)} <small>${esc(t("soon"))}</small></button>`;
+  const chSeg=`<div class="field"><span class="lbl">${esc(t("remChannel"))}</span><div class="seg">${chBtn("mail",t("chMail"))}${chBtn("wa",t("chWA"))}${chBtn("sms",t("chSMS"))}${chBtn("none",t("chNone"))}</div></div>`;
+  if(r.ch==="none") return chSeg+`<div class="hint" style="font-size:14px;color:var(--cream-dim)">${esc(t("noneHint"))}</div>`;
+  return `${chSeg}
+     ${(r.ch==="wa"||r.ch==="sms")?`<div class="field"><label for="${p}-phone">${esc(t("fPhone"))}</label><input id="${p}-phone" type="tel" dir="ltr" autocomplete="tel" placeholder="050-0000000" value="${esc(phone||"")}"><span class="hint">${esc(t("fPhoneHint"))}</span></div>`:""}
      <div class="row2"><div class="field"><span class="lbl">${esc(t("remFreq"))}</span><div class="seg">${segBtns("fr",r.fr,[["daily",t("fDaily")],["2w",t("f2w")],["weekly",t("fWeekly")]])}</div></div>
      <div class="field"><span class="lbl">${esc(t("remTime"))}</span><div class="seg">${segBtns("tm",r.tm,[["morning",t("tMorning")],["noon",t("tNoon")],["evening",t("tEvening")]])}</div></div></div>
      <div class="hint" style="font-size:13px;color:var(--cream-faint)">${esc(t("noShabbat"))}</div>`;
@@ -494,8 +499,8 @@ async function act(a, btn){
     if(s==="details"){
       captureDetails();
       if(!(S.auth&&S.auth.name) && !W.name) return setErr(t("errName"));
-      if(W.rem.ch!=="mail" && !/\d{9,}/.test(W.details.phone.replace(/\D/g,""))) return setErr(t("errPhone"));
-      if(!W.consent) return setErr(t("errConsent"));
+      if((W.rem.ch==="wa"||W.rem.ch==="sms") && !/\d{9,}/.test(W.details.phone.replace(/\D/g,""))) return setErr(t("errPhone"));
+      if(W.rem.ch!=="none" && !W.consent) return setErr(t("errConsent"));
       btn.disabled=true; btn.textContent=t("saving");
       try{ await commit(); }catch(e){ console.warn(e); btn.disabled=false; btn.textContent=t("commit"); const code=(e&&(e.code||e.message))||""; return setErr((/permission/i.test(code)?t("saveErrPerm"):t("saveErr"))+(code?" ("+String(code).replace(/^firestore\//,"")+")":"")); }
       W.step++; LS.del("atgar_draft"); renderWizard(); window.scrollTo(0,0); return;
@@ -528,9 +533,16 @@ async function commit(){
 }
 async function commitWith(commitment){
   const d=W.details;
-  const profile = {age:d.age, gender:d.gender, sector:d.sector, city:d.city, community:d.community, communityKey: communityKey(d.community, d.city), phone: W.rem.ch==="mail" ? (d.phone||"") : d.phone};
-  await window.Store.commit({profile, rem:Object.assign({},W.rem), consent:t("consent"), ref:LS.get("atgar_ref")||null, name: W.name || "", lang, commitment});
-  await refreshMine();
+  const profile = {age:d.age, gender:d.gender, sector:d.sector, city:d.city, community:d.community, communityKey: communityKey(d.community, d.city), phone: d.phone||""};
+  await window.Store.commit({profile, rem:Object.assign({},W.rem), consent:t("consent"), ref:LS.get("atgar_ref")||null, name: W.name || "", lang, commitment, active: W.rem.ch!=="none"});
+  await refreshMine(); waitForCode();
+}
+// The personal invite code is created on the server a few seconds after the first save; check back until it appears.
+function waitForCode(tries){
+  tries = tries==null ? 8 : tries;
+  if(!LIVE() || !S.auth || (S.me && S.me.code) || tries<=0) return;
+  setTimeout(async()=>{ try{ const me=await window.Store.loadMe(); if(me){ S.me=me; } }catch(e){}
+    if(S.me && S.me.code){ if(view==="me") renderMe(); else if(view==="join") renderWizard(); } else waitForCode(tries-1); }, 2500);
 }
 async function refreshMine(){
   if(!S.auth){ S.me=null; S.commitments=[]; return; }
@@ -568,6 +580,7 @@ function encFor(p){ if(p>=1) return t("enc5"); if(p>=.75) return t("enc4"); if(p
 function ringSVG(p){ const r=40, C=2*Math.PI*r; return `<svg class="ring" viewBox="0 0 96 96"><circle class="bg" cx="48" cy="48" r="${r}"/><circle class="fg" cx="48" cy="48" r="${r}" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}" transform="rotate(-90 48 48)"/><text x="48" y="55" text-anchor="middle">${Math.round(p*100)}%</text></svg>`; }
 let remEditing = false, remDraft = null;
 function renderMe(){
+  if(LIVE() && S.auth && S.me && !S.me.code && !renderMe._polled){ renderMe._polled=true; waitForCode(5); }
   const box=$("#me");
   if(!S.ready){ box.innerHTML=`<div class="empty"><p style="color:var(--cream-dim)">…</p></div>`; return; }
   if(!S.auth){
@@ -578,7 +591,7 @@ function renderMe(){
     box.innerHTML=`<div class="me-head"><h2 style="font-size:40px">${esc(t("meHello",{name:firstName()}))}</h2></div><div class="empty"><svg width="56" height="56" style="color:var(--gold)"><use href="#g-seed"/></svg><h3 style="font-size:28px">${esc(t("meEmptyH"))}</h3><p style="color:var(--cream-dim)">${esc(t("meEmptyP"))}</p><button class="btn btn-gold" data-go="join">${esc(t("ctaJoin"))}</button></div>`;
     return;
   }
-  const chName={wa:t("chWA"),sms:t("chSMS"),mail:t("chMail")}, frName={daily:t("fDaily"),"2w":t("f2w"),weekly:t("fWeekly")}, tmName={morning:t("tMorning"),noon:t("tNoon"),evening:t("tEvening")};
+  const chName={wa:t("chWA"),sms:t("chSMS"),mail:t("chMail"),none:t("chNone")}, frName={daily:t("fDaily"),"2w":t("f2w"),weekly:t("fWeekly")}, tmName={morning:t("tMorning"),noon:t("tNoon"),evening:t("tEvening")};
   const cards = S.commitments.map(c=>{
     const p = Math.min(1, (c.done||0)/c.n); const exp=expectedFor(c); const done=(c.done||0)>=c.n;
     const st = done?`<span class="status done">✓ ${esc(t("doneS"))}</span>` : ((c.done||0)+0.001>=exp?`<span class="status ok">● ${esc(t("onTrack"))}</span>`:`<span class="status behind">● ${esc(t("behind"))}</span>`);
@@ -598,15 +611,15 @@ function renderMe(){
     remPanel=`<div class="panel form" id="remPanel"><h3 style="font-size:22px">${esc(t("remSet"))}</h3>${remControls(remDraft.rem, remDraft.phone, "m")}<div class="err" id="err"></div><div style="display:flex;gap:8px"><button class="btn btn-gold btn-sm" data-rem="save">${esc(t("save"))}</button><button class="btn btn-ghost btn-sm" data-rem="cancel">${esc(t("cancel"))}</button></div></div>`;
   } else {
     remPanel=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:22px">${esc(t("remSet"))}</h3><button class="btn btn-ghost btn-sm" data-rem="edit">${esc(t("remEdit"))}</button></div>
-      ${active?`<dl class="kv"><dt>${esc(t("remCh"))}</dt><dd>${esc(chName[r.ch])}</dd><dt>${esc(t("remFr"))}</dt><dd>${esc(frName[r.fr])}</dd><dt>${esc(t("remAt"))}</dt><dd>${esc(tmName[r.tm])}</dd></dl>`:`<p style="color:var(--warn)">${esc(t("remPaused"))}</p>`}
-      <button class="back" style="margin-top:10px;font-size:14px" data-rem="${active?"pause":"resume"}">${esc(active?t("remPause"):t("remResume"))}</button></div>`;
+      ${r.ch==="none"?`<p style="color:var(--cream-dim)">${esc(t("noneMe"))}</p>`:active?`<dl class="kv"><dt>${esc(t("remCh"))}</dt><dd>${esc(chName[r.ch])}</dd><dt>${esc(t("remFr"))}</dt><dd>${esc(frName[r.fr])}</dd><dt>${esc(t("remAt"))}</dt><dd>${esc(tmName[r.tm])}</dd></dl>${!LIVE_CH[r.ch]?`<p style="color:var(--warn);font-size:14px;margin-top:8px">${esc(t("chSoonMe"))}</p>`:""}`:`<p style="color:var(--warn)">${esc(t("remPaused"))}</p>`}
+      ${r.ch==="none"?"":`<button class="back" style="margin-top:10px;font-size:14px" data-rem="${active?"pause":"resume"}">${esc(active?t("remPause"):t("remResume"))}</button>`}</div>`;
   }
   box.innerHTML=`<div class="me-head"><div><div class="eyebrow">${esc(t("meH"))}</div><h2 style="font-size:clamp(30px,4.4vw,44px)">${esc(t("meHello",{name:firstName()}))}</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" data-act2="more">+ ${esc(t("addMore"))}</button><button class="btn btn-ghost btn-sm" data-act3="signout">${esc(t("signOut"))}</button></div></div>
    <div class="me-grid"><div>${cards}</div>
    <aside class="side">
      ${remPanel}
      ${S.community?`<div class="panel"><p style="font-family:var(--f-display);font-size:19px;color:var(--gold-hi)">${esc(t("commCount",{c:S.community.name,n:nf(S.community.n)}))}</p></div>`:""}
-     <div class="panel" style="display:grid;gap:12px"><div style="display:flex;gap:12px;align-items:center"><svg width="44" height="44" style="color:var(--gold)"><use href="#g-angel"/></svg><div><h3 style="font-size:22px">${esc(t("angelBox"))}</h3><div style="color:var(--cream-dim)"><b style="font-family:var(--f-display);font-size:22px;color:var(--gold-hi)">${nf(me.invitesCount||0)}</b> ${esc(t("angelCount"))}</div></div></div><p style="color:var(--cream-dim);font-size:15px">${esc(t("invP"))}</p><div class="linkbox"><code>${esc(link)}</code><button class="btn btn-ghost btn-sm" data-copy="${esc(link)}">${esc(t("copy"))}</button></div><a class="btn btn-sm wa" href="${waLink(t("invMsg",{goal:cGoal(S.commitments[0]),link}))}" target="_blank" rel="noopener">${esc(t("sendWA"))}</a><span style="font-size:12px;color:var(--cream-faint)">${esc(t("angelDemo"))}</span></div>
+     <div class="panel" style="display:grid;gap:12px"><div style="display:flex;gap:12px;align-items:center"><svg width="44" height="44" style="color:var(--gold)"><use href="#g-angel"/></svg><div><h3 style="font-size:22px">${esc(t("angelBox"))}</h3><div style="color:var(--cream-dim)"><b style="font-family:var(--f-display);font-size:22px;color:var(--gold-hi)">${nf(me.invitesCount||0)}</b> ${esc(t("angelCount"))}</div></div></div><p style="color:var(--cream-dim);font-size:15px">${esc(t("invP"))}</p>${(S.me&&S.me.code)?`<div class="linkbox"><code>${esc(link)}</code><button class="btn btn-ghost btn-sm" data-copy="${esc(link)}">${esc(t("copy"))}</button></div><a class="btn btn-sm wa" href="${waLink(t("invMsg",{goal:cGoal(S.commitments[0]),link}))}" target="_blank" rel="noopener">${esc(t("sendWA"))}</a>`:`<div class="linkbox"><code style="color:var(--cream-faint)">${esc(t("linkPending"))}</code></div>`}<span style="font-size:12px;color:var(--cream-faint)">${esc(t("angelDemo"))}</span></div>
    </aside></div>`;
 }
 
@@ -840,14 +853,15 @@ async function saveProgress(cm, v){
 }
 async function remAction(k){
   const me=S.me||(S.me={});
-  if(k==="edit"){ remEditing=true; remDraft={rem:Object.assign({ch:"wa",fr:"daily",tm:"evening"},me.rem||{}), phone:(me.profile&&me.profile.phone)||""}; renderMe(); return; }
+  if(k==="edit"){ remEditing=true; remDraft={rem:Object.assign({ch:"mail",fr:"daily",tm:"evening"},me.rem||{}), phone:(me.profile&&me.profile.phone)||""}; renderMe(); return; }
   if(k==="cancel"){ remEditing=false; renderMe(); return; }
   if(k==="save"){
     const ph=document.getElementById("m-phone"); if(ph) remDraft.phone=ph.value.trim();
-    if(remDraft.rem.ch!=="mail" && !/\d{9,}/.test((remDraft.phone||"").replace(/\D/g,""))) return setErr(t("errPhone"));
+    if((remDraft.rem.ch==="wa"||remDraft.rem.ch==="sms") && !/\d{9,}/.test((remDraft.phone||"").replace(/\D/g,""))) return setErr(t("errPhone"));
     try{
       if(remDraft.phone !== ((me.profile&&me.profile.phone)||"")){ me.profile=Object.assign({},me.profile,{phone:remDraft.phone}); if(window.Store.updatePhone) await window.Store.updatePhone(remDraft.phone); }
-      await window.Store.updateReminders(remDraft.rem, true); me.rem=remDraft.rem; me.reminderActive=true; remEditing=false; renderMe(); toast(t("remSaved"));
+      const on = remDraft.rem.ch!=="none";
+      await window.Store.updateReminders(remDraft.rem, on); me.rem=remDraft.rem; me.reminderActive=on; remEditing=false; renderMe(); toast(t("remSaved"));
     }catch(e){ setErr(t("saveErr")); }
     return;
   }

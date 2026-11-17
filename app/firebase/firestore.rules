@@ -22,7 +22,7 @@ service cloud.firestore {
     function validStr(v, max) { return v is string && v.size() <= max; }
     function validRem(r) {
       return r is map
-        && r.ch in ['wa', 'sms', 'mail'] && r.fr in ['daily', '2w', 'weekly']
+        && r.ch in ['wa', 'sms', 'mail', 'none'] && r.fr in ['daily', '2w', 'weekly']
         && r.tm in ['morning', 'noon', 'evening'];
     }
     function validProfile(p) {
