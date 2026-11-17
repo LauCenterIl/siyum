@@ -90,11 +90,16 @@ window.Store = {
   },
   async commit({profile, rem, consent, ref, name, lang, commitment}){
     const u = auth.currentUser; if(!u) throw new Error("not signed in");
+    try{ await u.getIdToken(true); }catch(e){}   // make sure the database sees the latest verified-email status
+    const clean = o => { const r={}; Object.keys(o||{}).forEach(k=>{ if(o[k]!==undefined && o[k]!==null) r[k]=(typeof o[k]==="string")?o[k]:o[k]; }); return r; };
+    profile = clean(profile); ["age","gender","sector","city","community","communityKey","phone"].forEach(k=>{ if(typeof profile[k]!=="string") profile[k]=profile[k]==null?"":String(profile[k]); });
+    profile.city=profile.city.slice(0,60); profile.community=profile.community.slice(0,80); profile.communityKey=profile.communityKey.slice(0,120); profile.phone=profile.phone.slice(0,30);
+    if(ref && !/^[A-Za-z0-9]{3,12}$/.test(ref)) ref = null;
     if(name && name !== u.displayName){ try{ await updateProfile(u, {displayName:name}); }catch(e){} }
     const uref = doc(db, "users", u.uid);
     const existing = await getDoc(uref);
     const data = {
-      name: name || u.displayName || "", email: u.email || "", lang,
+      name: String(name || u.displayName || "").slice(0,80), email: u.email || "", lang,
       profile, rem, reminderActive: true,
       consent: {at: serverTimestamp(), text: consent},
       updatedAt: serverTimestamp()
@@ -102,6 +107,8 @@ window.Store = {
     if(ref && !(existing.exists() && existing.data().ref)) data.ref = ref;
     await setDoc(uref, data, {merge:true});
     const c = Object.assign({}, commitment, {done:0, createdAt: serverTimestamp()});
+    Object.keys(c).forEach(k=>{ if(c[k]===undefined) delete c[k]; });
+    if(typeof c.ded==="string") c.ded=c.ded.slice(0,120);
     const r = await addDoc(collection(db, "users", u.uid, "commitments"), c);
     return r.id;
   },

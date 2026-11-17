@@ -358,7 +358,7 @@ function renderWizard(){
     </div>
     <div class="panel form" style="margin-top:18px"><h3 style="font-size:24px">${esc(t("remH"))}</h3>
      ${remControls(r, d.phone)}
-     <div class="field"><span class="lbl" style="color:var(--cream-faint);font-weight:600">${esc(t("remPreview"))}</span><div class="preview-msg">${esc(t("remSample",{name:firstName(),goal:currentGoalText(),pct:12}))}<small>20:30</small></div></div>
+     <div class="field"><span class="lbl" style="color:var(--cream-faint);font-weight:600">${esc(t("remPreview"))}</span><div class="preview-msg">${esc(t("remSample",{name:firstName(),goal:currentGoalText(),pct:12,greet:(t("greetTm")||{})[r.tm]||""}))}<small>${({morning:"08:00",noon:"13:00",evening:"20:30"})[r.tm]||"20:30"}</small></div></div>
      <label class="check"><input id="d-consent" type="checkbox" ${W.consent?"checked":""}><span>${esc(t("consent"))}</span></label>
      <div class="hint" style="font-size:13px;color:var(--cream-faint)">${esc(t("privacy"))} <a href="privacy.html" target="_blank" rel="noopener">${esc(t("footPrivacy"))}</a></div>
      <div class="err" id="err"></div>
@@ -497,7 +497,7 @@ async function act(a, btn){
       if(W.rem.ch!=="mail" && !/\d{9,}/.test(W.details.phone.replace(/\D/g,""))) return setErr(t("errPhone"));
       if(!W.consent) return setErr(t("errConsent"));
       btn.disabled=true; btn.textContent=t("saving");
-      try{ await commit(); }catch(e){ console.warn(e); btn.disabled=false; btn.textContent=t("commit"); return setErr(t("saveErr")); }
+      try{ await commit(); }catch(e){ console.warn(e); btn.disabled=false; btn.textContent=t("commit"); const code=(e&&(e.code||e.message))||""; return setErr((/permission/i.test(code)?t("saveErrPerm"):t("saveErr"))+(code?" ("+String(code).replace(/^firestore\//,"")+")":"")); }
       W.step++; LS.del("atgar_draft"); renderWizard(); window.scrollTo(0,0); return;
     }
     W.step = (s==="signin") ? afterSignin() : W.step+1; renderWizard(); window.scrollTo(0,0);

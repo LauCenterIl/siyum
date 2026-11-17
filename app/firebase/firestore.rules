@@ -21,13 +21,12 @@ service cloud.firestore {
     }
     function validStr(v, max) { return v is string && v.size() <= max; }
     function validRem(r) {
-      return r is map && r.keys().hasOnly(['ch', 'fr', 'tm'])
+      return r is map
         && r.ch in ['wa', 'sms', 'mail'] && r.fr in ['daily', '2w', 'weekly']
         && r.tm in ['morning', 'noon', 'evening'];
     }
     function validProfile(p) {
       return p is map
-        && p.keys().hasOnly(['age', 'gender', 'sector', 'city', 'community', 'communityKey', 'phone'])
         && validStr(p.get('city', ''), 60) && validStr(p.get('community', ''), 80)
         && validStr(p.get('communityKey', ''), 120) && validStr(p.get('phone', ''), 30)
         && p.get('sector', '') in ['', 'secular', 'traditional', 'dati', 'haredi', 'other'];
@@ -45,11 +44,17 @@ service cloud.firestore {
       allow read: if isOwner(uid) || isAdmin();
       allow create: if isVerifiedOwner(uid) && validUser(request.resource.data)
         && !request.resource.data.keys().hasAny(serverFields());
-      allow update: if isVerifiedOwner(uid) && validUser(request.resource.data)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(serverFields())
+      // Updates check only what the browser changes, so older documents with legacy fields can still be updated
+      allow update: if isVerifiedOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'email', 'lang', 'profile', 'rem', 'reminderActive', 'consent', 'ref', 'updatedAt'])
+        && validStr(request.resource.data.get('name', ''), 80)
+        && (!('profile' in request.resource.data) || validProfile(request.resource.data.profile))
+        && (!('rem' in request.resource.data) || validRem(request.resource.data.rem))
         // the referral code of whoever invited you can be set once and never changed
         && (!('ref' in resource.data) || resource.data.ref == null
-            || request.resource.data.get('ref', null) == resource.data.ref);
+            || request.resource.data.get('ref', null) == resource.data.ref)
+        && (request.resource.data.get('ref', null) == null || validStr(request.resource.data.ref, 12));
       allow delete: if false;
 
       match /commitments/{cid} {
