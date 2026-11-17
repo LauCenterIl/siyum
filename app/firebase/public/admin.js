@@ -10,7 +10,7 @@ const $ = s => document.querySelector(s);
 const nf = n => new Intl.NumberFormat("he-IL").format(n || 0);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]));
 const NAMES = {
-  track: { seed: "טבעת", growth: "צמיד", peak: "שרשרת" },
+  track: { seed: "גפרור", growth: "נר", peak: "אבוקה" },
   subject: { tanach: "תנ״ך", mussar: "מוסר ופרקי אבות", machshava: "מחשבת ישראל", halacha: "הלכה", rambam: "רמב״ם", gemara: "גמרא", custom: "התחייבות אישית" },
   sector: { secular: "חילונית", traditional: "מסורתית", dati: "דתית-לאומית", haredi: "חרדית", other: "אחרת", unknown: "לא צוין", "": "לא צוין" }
 };
