@@ -3,6 +3,9 @@ window.T = {
 he:{
  brand:"אתגר הסיום", brandSub:"אתגר התורה הישראלי · מבית מרכז לאו",
  navHow:"איך זה עובד", navTracks:"המסלולים", navRoad:"הדרך לשבועות", navMe:"האתגר שלי",
+ inviteBar:"הרב הראשי, הרב דוד לאו, מזמין אתכם להצטרף לאתגר הסיום הגדול!",
+ heroPill2:"שבועות תשפ״ז · סיום הש״ס", heroRotPre:"בוחרים", heroRotPost:"- ומסיימים עד שבועות.",
+ heroRotWords:"פרק תהילים|מסכת ברכות|ספר יונה|פרקי אבות|100 הלכות", orbSub:"התחייבויות - היעד המשותף שלנו", orbChips:"תהילים|מסכת ברכות|פרקי אבות|רמב״ם|ספר בראשית",
  heroPill:"מהסיום שלך ועד סיום הש״ס - שבועות תשפ״ז",
  heroH1a:"בחג השבועות, רבבות מעם ישראל מסיימים את הש״ס - הדף היומי.", heroH1b:"כל אחד מאיתנו מצטרף עם ״סיום״ קטן משלו!", heroH1c:"לעשות נחת רוח לה׳ יתברך!",
  heroLead1:"בוחרים לימוד. מציבים יעד. מצטרפים לעם ישראל.", heroLead2:"כמה דקות ביום, ספר בתנ״ך או מסכת שלמה - כל התחייבות נספרת, וכולן יחד מגיעות לשבועות.",
@@ -93,6 +96,9 @@ he:{
 en:{
  brand:"The Siyum Challenge", brandSub:"Israel's Torah Challenge · by the Lau Center",
  navHow:"How it works", navTracks:"Tracks", navRoad:"Road to Shavuos", navMe:"My challenge",
+ inviteBar:"The Chief Rabbi, HaRav David Lau, invites you to join the great Siyum Challenge!",
+ heroPill2:"Shavuos 5787 · Siyum HaShas", heroRotPre:"Choose", heroRotPost:"- and finish by Shavuos.",
+ heroRotWords:"a perek of Tehillim|Maseches Berachos|Sefer Yonah|Pirkei Avos|100 halachos", orbSub:"commitments - our shared goal", orbChips:"Tehillim|Berachos|Pirkei Avos|Rambam|Bereishis",
  heroPill:"From your siyum to the Siyum HaShas - Shavuos 5787",
  heroH1a:"This Shavuos, tens of thousands of Jews complete Shas - the Daf Yomi.", heroH1b:"Each of us joins with a little \"siyum\" of our own!", heroH1c:"To bring nachas ruach to Hashem Yisborach!",
  heroLead1:"Choose your limud. Set your goal. Join Klal Yisroel.", heroLead2:"A few minutes a day, a sefer of Tanach or a full masechta - every commitment counts, and together they all reach Shavuos.",

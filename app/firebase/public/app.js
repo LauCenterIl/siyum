@@ -154,7 +154,7 @@ function applyLang(){
   document.documentElement.lang = lang; document.documentElement.dir = lang==="he"?"rtl":"ltr";
   document.querySelectorAll("[data-t]").forEach(el=>{ const v=t(el.dataset.t); if(typeof v!=="string") return; if(v.includes("|")) el.innerHTML=lines(v); else el.textContent=v; });
   $("#langBtn").textContent = lang==="he"?"EN":"עב"; $("#langBtn").setAttribute("aria-label", lang==="he"?"Switch to English":"מעבר לעברית"); $("#langBtn").setAttribute("lang", lang==="he"?"en":"he");
-  renderTrackCards(); renderSubjChips(); renderRoad(); renderCountdown(); renderStats();
+  renderTrackCards(); renderSubjChips(); renderRoad(); renderCountdown(); renderStats(); renderHeroOrb();
   const ref = LS.get("atgar_ref"); if(ref){ const b=$("#refBanner"); b.hidden=false; b.textContent=t("refBanner"); }
   if(view==="join") renderWizard(); if(view==="me") renderMe(); if(view==="learn") renderLearn(); if(view==="read") renderRead();
 }
@@ -856,14 +856,34 @@ async function remAction(k){
   }
 }
 
+/* ---------- hero: orbit chips, rotating word, count-up ---------- */
+function stillMode(){ return matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("a11y-still"); }
+function renderHeroOrb(){
+  const o=$("#orbit"); if(o){ const ch=String(t("orbChips")||"").split("|").filter(Boolean); o.innerHTML=ch.map((c,i)=>`<span class="chip c${i+1}${i===1?" hl":""}">${esc(c)}</span>`).join(""); }
+  heroRot._i=0; heroRot(true);
+}
+function heroRot(first){
+  const el=$("#rotWord"); if(!el) return; const words=String(t("heroRotWords")||"").split("|").filter(Boolean); if(!words.length) return;
+  el.textContent=words[heroRot._i%words.length];
+  if(!first){ el.classList.remove("swap"); void el.offsetWidth; el.classList.add("swap"); }
+  if(!heroRot._timer) heroRot._timer=setInterval(()=>{ if(stillMode()||view!=="home") return; heroRot._i=(heroRot._i+1); heroRot(false); }, 2400);
+}
+function orbCount(){
+  const el=$("#orbNum"); if(!el) return; const goal=600000;
+  if(stillMode()){ el.textContent=nf(goal); return; }
+  const t0=performance.now()+300;
+  const tick=(now)=>{ const p=Math.max(0,Math.min(1,(now-t0)/2600)); el.textContent=nf(Math.round(goal*(1-Math.pow(1-p,3)))); if(p<1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+
 /* ---------- hero sparks ---------- */
 function sparks(){
   const cv=$("#sparks"); if(!cv) return; const ctx=cv.getContext("2d");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let W2,H2,P=[]; const dpr=Math.min(2,window.devicePixelRatio||1);
   function size(){ const r=cv.getBoundingClientRect(); W2=r.width; H2=r.height; cv.width=W2*dpr; cv.height=H2*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); const count=Math.round(Math.min(140,W2/8)); P=Array.from({length:count},()=>mk(true)); }
-  function mk(init){ return {x:Math.random()*W2, y: init?Math.random()*H2:H2+10, r:.6+Math.random()*1.8, v:.15+Math.random()*.55, a:.2+Math.random()*.7, w:Math.random()*Math.PI*2}; }
-  function draw(){ ctx.clearRect(0,0,W2,H2); for(const p of P){ p.y-=p.v; p.w+=.02; p.x+=Math.sin(p.w)*.25; if(p.y<-10) Object.assign(p,mk(false)); const fade=Math.min(1,p.y/(H2*.35)); ctx.beginPath(); ctx.fillStyle=`rgba(236,211,145,${p.a*fade})`; ctx.shadowColor="rgba(236,180,90,.9)"; ctx.shadowBlur=8; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } if(!reduce && !document.documentElement.classList.contains("a11y-still")) requestAnimationFrame(draw); else sparks._stopped=true; }
+  function mk(init){ return {x:Math.random()*W2, y: init?Math.random()*H2:H2+10, r:.5+Math.random()*1.6, v:.08+Math.random()*.32, a:.2+Math.random()*.7, w:Math.random()*Math.PI*2, c:Math.random()<.7?"245,239,226":"243,210,122"}; }
+  function draw(){ ctx.clearRect(0,0,W2,H2); for(const p of P){ p.y-=p.v; p.w+=.02; p.x+=Math.sin(p.w)*.25; if(p.y<-10) Object.assign(p,mk(false)); const fade=Math.min(1,p.y/(H2*.35)); ctx.beginPath(); const tw=.55+.45*Math.sin(p.w*3); ctx.fillStyle=`rgba(${p.c},${p.a*fade*tw})`; ctx.shadowColor="rgba(243,210,122,.7)"; ctx.shadowBlur=8; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } if(!reduce && !document.documentElement.classList.contains("a11y-still")) requestAnimationFrame(draw); else sparks._stopped=true; }
   sparks._restart=()=>{ if(sparks._stopped && !reduce){ sparks._stopped=false; requestAnimationFrame(draw); } };
   size(); addEventListener("resize",size); draw();
 }
@@ -882,7 +902,7 @@ function boot(){
   captureParams();
   const draft=loadDraft(); if(draft){ W=draft; W._linkSent=null; }
   prefillCommunity();
-  applyLang(); sparks();
+  applyLang(); sparks(); orbCount();
   window.Store.watchStats(st=>{ S.stats=st; renderStats(); });
   window.Store.init(async user=>{
     S.auth=user; await refreshMine(); S.ready=true;
